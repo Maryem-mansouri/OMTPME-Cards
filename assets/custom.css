@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols&display=swap');
+
+* {
+    font-family: "Noto Sans Symbols", sans-serif !important;
+}
+
+/* Spécifiquement sur le canvas Plotly */
+.mapboxgl-canvas,
+.js-plotly-plot,
+.plotly,
+svg text {
+    font-family: "Arial Unicode MS", "Segoe UI Symbol", "DejaVu Sans", sans-serif !important;
+}
