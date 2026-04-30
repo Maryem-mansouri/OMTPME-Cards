@@ -324,7 +324,7 @@ app.layout = html.Div([
 
         # ===== LOGO =====
         html.Img(
-            src="/assets/logo.png",
+            src="/assets/Logo.png",
             style={
                 "height": "50px",
                 "marginRight": "15px"
