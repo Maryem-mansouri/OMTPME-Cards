@@ -8,6 +8,9 @@ import base64
 import io
 import base64
 import os
+from flask import session
+from auth import is_email_allowed, register_user, verify_user
+
 
 # ================= SVG FLECHES EN BASE64 =================  ← ICI
 def make_arrow_b64(color_hex, direction="up"):
@@ -271,6 +274,8 @@ app = dash.Dash(__name__,
     assets_folder=os.path.join(os.path.dirname(__file__), "assets"))
 app.title = "Carte interactive des régions du Maroc"
 
+server = app.server
+server.secret_key = "omtpme_secret_key_2025_changez_moi"
 #stored_values = {region: {} for region in regions}
 
 
@@ -312,9 +317,181 @@ def geo_to_paper(lon, lat, lon_min, lon_max, lat_min, lat_max):
     y = (lat - lat_min) / (lat_max - lat_min) if lat_max != lat_min else 0.5
     return x, y
 
+# ===== LAYOUT LOGIN =====
+login_layout = html.Div([
+    html.Div([
+        html.Div([
+            # Logo
+            html.Div([
+                html.Img(src="/assets/Logo.png", style={"height": "55px", "marginBottom": "16px"})
+            ], style={"textAlign": "center"}),
 
+            html.H2("Connexion", style={
+                "color": "#2c7fb8", "textAlign": "center",
+                "fontSize": "20px", "marginBottom": "4px"
+            }),
+            html.P("Tableau de Bord des Régions — OMTPME", style={
+                "color": "#aaa", "fontSize": "11px",
+                "textAlign": "center", "marginBottom": "26px"
+            }),
+
+            # Email
+            html.Label("Email", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="login-email", type="email", placeholder="votre@email.ma",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "12px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe", "outline": "none"
+                }),
+
+            # Mot de passe
+            html.Label("Mot de passe", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="login-password", type="password", placeholder="••••••••",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "16px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe", "outline": "none"
+                }),
+
+            html.Button("Se connecter →", id="btn-login", n_clicks=0, style={
+                "width": "100%", "padding": "11px",
+                "backgroundColor": "#2c7fb8", "color": "white",
+                "border": "none", "borderRadius": "8px",
+                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+            }),
+
+            html.Div(id="login-error", style={
+                "color": "#c0392b", "fontSize": "12px",
+                "textAlign": "center", "marginTop": "10px",
+                "background": "#FFF0F0", "borderRadius": "6px",
+                "padding": "0px"
+            }),
+
+            # Lien vers inscription
+            html.Div([
+                html.Span("Première connexion ? ", style={"fontSize": "12px", "color": "#aaa"}),
+                html.A("Créer mon compte", href="/register", style={
+                    "fontSize": "12px", "color": "#2c7fb8",
+                    "fontWeight": "600", "textDecoration": "none"
+                })
+            ], style={"textAlign": "center", "marginTop": "16px"}),
+
+            html.P("Réalisé par Maryem El Mansouri — © 2025", style={
+                "textAlign": "center", "fontSize": "10px",
+                "color": "#ccc", "marginTop": "20px"
+            })
+
+        ], style={
+            "background": "white", "padding": "38px 34px",
+            "borderRadius": "16px", "width": "340px",
+            "border": "0.5px solid #dce8f5"
+        })
+    ], style={
+        "display": "flex", "alignItems": "center",
+        "justifyContent": "center", "minHeight": "100vh",
+        "backgroundColor": "#EDF6F7"
+    })
+])
+
+# ===== LAYOUT INSCRIPTION =====
+register_layout = html.Div([
+    html.Div([
+        html.Div([
+            html.Div([
+                html.Img(src="/assets/Logo.png", style={"height": "55px", "marginBottom": "16px"})
+            ], style={"textAlign": "center"}),
+
+            html.H2("Créer mon compte", style={
+                "color": "#2c7fb8", "textAlign": "center",
+                "fontSize": "20px", "marginBottom": "4px"
+            }),
+            html.P("Entrez votre email autorisé et choisissez un mot de passe", style={
+                "color": "#aaa", "fontSize": "11px",
+                "textAlign": "center", "marginBottom": "26px"
+            }),
+
+            html.Label("Email autorisé", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="register-email", type="email", placeholder="votre@email.ma",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "12px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Label("Choisir un mot de passe", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="register-password", type="password", placeholder="Minimum 6 caractères",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "12px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Label("Confirmer le mot de passe", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="register-password2", type="password", placeholder="Répéter le mot de passe",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "16px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Button("Créer mon compte", id="btn-register", n_clicks=0, style={
+                "width": "100%", "padding": "11px",
+                "backgroundColor": "#27ae60", "color": "white",
+                "border": "none", "borderRadius": "8px",
+                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+            }),
+
+            html.Div(id="register-msg", style={
+                "fontSize": "12px", "textAlign": "center",
+                "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
+            }),
+
+            html.Div([
+                html.Span("Déjà un compte ? ", style={"fontSize": "12px", "color": "#aaa"}),
+                html.A("Se connecter", href="/", style={
+                    "fontSize": "12px", "color": "#2c7fb8",
+                    "fontWeight": "600", "textDecoration": "none"
+                })
+            ], style={"textAlign": "center", "marginTop": "16px"}),
+
+        ], style={
+            "background": "white", "padding": "38px 34px",
+            "borderRadius": "16px", "width": "340px",
+            "border": "0.5px solid #dce8f5"
+        })
+    ], style={
+        "display": "flex", "alignItems": "center",
+        "justifyContent": "center", "minHeight": "100vh",
+        "backgroundColor": "#EDF6F7"
+    })
+])
 # ================= LAYOUT =================
-app.layout = html.Div([
+main_layout = html.Div([
     # ===== SESSION STORE =====
     dcc.Store(id="stored-values", storage_type="session", data={}),
     dcc.Store(id="excel-contents-store", storage_type="session", data=None),
@@ -490,7 +667,13 @@ app.layout = html.Div([
                     "color": "green",
                     "fontSize": "14px"
                 }
-            )
+            ),
+            html.Button("🔓 Déconnexion", id="btn-logout", n_clicks=0, style={
+                "backgroundColor": "#FFF0F0", "color": "#c0392b",
+                "border": "1px solid #f5c0c0", "padding": "6px 14px",
+                "borderRadius": "8px", "fontSize": "12px",
+                "cursor": "pointer", "marginLeft": "10px"
+            }),
 
         ], style={
             "width": "300px",
@@ -551,7 +734,12 @@ app.layout = html.Div([
 
 ])
 
-
+app.layout = html.Div([
+    dcc.Location(id="url", refresh=False),
+    dcc.Store(id="stored-values", storage_type="session", data={}),
+    dcc.Store(id="excel-contents-store", storage_type="session", data=None),
+    html.Div(id="page-content")
+])
 # ================= UPDATE PROVINCES =================
 @app.callback(
     Output("dropdown-province", "options"),
@@ -946,6 +1134,113 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
     return fig, stored_values
 
+# ===== ROUTING =====
+@app.callback(
+    Output("page-content", "children"),
+    Input("url", "pathname")
+)
+def display_page(pathname):
+    if pathname == "/register":
+        return register_layout
+    if session.get("authenticated"):
+        return main_layout
+    return login_layout
+
+
+# ===== LOGIN =====
+@app.callback(
+    Output("login-error", "children"),
+    Output("login-error", "style"),
+    Output("url", "pathname"),
+    Input("btn-login", "n_clicks"),
+    State("login-email", "value"),
+    State("login-password", "value"),
+    prevent_initial_call=True
+)
+def login(n_clicks, email, password):
+    if not email or not password:
+        return "Veuillez remplir tous les champs.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }, "/"
+
+    success, msg = verify_user(email, password)
+    if success:
+        session["authenticated"] = True
+        session["email"] = email
+        return "", {}, "/dashboard"
+
+    return msg, {
+        "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+        "marginTop": "10px", "background": "#FFF0F0",
+        "borderRadius": "6px", "padding": "8px"
+    }, "/"
+
+
+# ===== INSCRIPTION =====
+@app.callback(
+    Output("register-msg", "children"),
+    Output("register-msg", "style"),
+    Input("btn-register", "n_clicks"),
+    State("register-email", "value"),
+    State("register-password", "value"),
+    State("register-password2", "value"),
+    prevent_initial_call=True
+)
+def register(n_clicks, email, password, password2):
+    if not email or not password or not password2:
+        return "Veuillez remplir tous les champs.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    if not is_email_allowed(email):
+        return "Cet email n'est pas autorisé.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    if len(password) < 6:
+        return "Le mot de passe doit contenir au moins 6 caractères.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    if password != password2:
+        return "Les mots de passe ne correspondent pas.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    success, msg = register_user(email, password)
+    if success:
+        return "✅ Compte créé ! Vous pouvez maintenant vous connecter.", {
+            "color": "#1e8449", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#EDFBF3",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    return msg, {
+        "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+        "marginTop": "10px", "background": "#FFF0F0",
+        "borderRadius": "6px", "padding": "8px"
+    }
+
+
+# ===== DÉCONNEXION =====
+@app.callback(
+    Output("url", "pathname", allow_duplicate=True),
+    Input("btn-logout", "n_clicks"),
+    prevent_initial_call=True
+)
+def logout(n_clicks):
+    session.clear()
+    return "/"
 
 # ================= RUN =================
 #if __name__ == "__main__":
