@@ -311,6 +311,8 @@ def geo_to_paper(lon, lat, lon_min, lon_max, lat_min, lat_max):
     x = (lon - lon_min) / (lon_max - lon_min) if lon_max != lon_min else 0.5
     y = (lat - lat_min) / (lat_max - lat_min) if lat_max != lat_min else 0.5
     return x, y
+
+
 # ================= LAYOUT =================
 app.layout = html.Div([
     # ===== SESSION STORE =====
@@ -346,12 +348,33 @@ app.layout = html.Div([
     ], style={
         "display": "flex",
         "alignItems": "center"
-    })
+    }),
+        html.Div([
+            html.Div([
+                html.Div("12", style={"fontSize": "20px", "fontWeight": "bold", "color": "#2c7fb8"}),
+                html.Div("Régions", style={"fontSize": "11px", "color": "#888"})
+            ], style={
+                "textAlign": "center", "padding": "8px 16px",
+                "background": "#f5f8fc", "borderRadius": "8px",
+                "border": "0.5px solid #dce8f5"
+            }),
+            html.Div([
+                html.Div("75", style={"fontSize": "20px", "fontWeight": "bold", "color": "#27ae60"}),
+                html.Div("Provinces", style={"fontSize": "11px", "color": "#888"})
+            ], style={
+                "textAlign": "center", "padding": "8px 16px",
+                "background": "#f5fcf8", "borderRadius": "8px",
+                "border": "0.5px solid #d5f0e2"
+            }),
+        ], style={"display": "flex", "gap": "10px", "marginLeft": "auto", "alignItems": "center"})
 
 ], style={
     "padding": "15px 25px",
     "backgroundColor": "#FFFFFF",
-    "boxShadow": "0px 2px 6px rgba(0,0,0,0.05)"
+    "boxShadow": "0px 2px 6px rgba(0,0,0,0.05)",
+    "display": "flex",                        # ← AJOUTER
+    "alignItems": "center",                   # ← AJOUTER
+    "justifyContent": "space-between"
 }),
 
 
@@ -503,6 +526,27 @@ app.layout = html.Div([
         "padding": "20px",
         "backgroundColor": "#EDF6F7",
         "minHeight": "90vh"
+    }),
+    # ===== FOOTER =====
+    html.Div([
+        html.P([
+            "Réalisé par ",
+            html.Span("Maryem El Mansouri | DA", style={
+                "fontWeight": "bold",
+                "color": "#3F82AD"
+            }),
+            " — OMTPME © 2026"
+        ], style={
+            "margin": "0",
+            "fontSize": "12px",
+            "color": "#3F82AD"
+        })
+    ], style={
+        "padding": "12px 25px",
+        "backgroundColor": "#FFFFFF",
+        "borderTop": "0.5px solid #e0e0e0",
+        "textAlign": "center",
+        "boxShadow": "0px -2px 6px rgba(0,0,0,0.03)"
     })
 
 ])
