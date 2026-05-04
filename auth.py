@@ -12,6 +12,7 @@ ALLOWED_EMAILS = [
     "r.sahmi@omtpme.ma",
     "s.bouziane@omtpme.ma",
     "ne.azekri@omtpme.ma"
+    
 ]
 
 def load_users():
