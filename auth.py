@@ -12,7 +12,8 @@ ALLOWED_EMAILS = [
     "s.skhoun@omtpme.ma",
     "r.sahmi@omtpme.ma",
     "s.bouziane@omtpme.ma",
-    "ne.azekri@omtpme.ma"
+    "ne.azekri@omtpme.ma",
+    "a.idrissi@omtpme.ma"
     
 ]
 
