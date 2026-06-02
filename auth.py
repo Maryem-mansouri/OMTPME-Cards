@@ -2,7 +2,8 @@ import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
-USERS_FILE = "users.json"
+#USERS_FILE = "users.json"
+USERS_FILE = os.environ.get("USERS_FILE", "users.json")
 
 # ===== EMAILS AUTORISÉS =====
 ALLOWED_EMAILS = [
