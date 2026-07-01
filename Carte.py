@@ -601,6 +601,12 @@ main_layout = html.Div([
                 placeholder="Part %",
                 style={"width": "100%", "marginBottom": "10px"}
             ),
+            dcc.Checklist(
+            id="show-percent",
+            options=[{"label": " Afficher le signe %", "value": "percent"}],
+            value=["percent"],  # coché par défaut
+            style={"marginBottom": "10px", "fontSize": "13px", "color": "#555"}
+            ),
 
             dcc.Input(
                 id="input-evolution",
@@ -684,6 +690,69 @@ main_layout = html.Div([
                     "fontSize": "14px"
                 }
             ),
+            html.Hr(style={"marginTop": "15px"}),
+            html.H5("Configuration des couleurs", style={"marginTop": "10px"}),
+            
+            # Mode de coloration
+            dcc.RadioItems(
+                id="color-mode",
+                options=[
+                    {"label": " Par classe (intervalles)", "value": "class"},
+                    {"label": " Par province", "value": "province"},
+                    {"label": " Couleur unique", "value": "single"},
+                ],
+                value="single",
+                style={"fontSize": "12px", "marginBottom": "10px"}
+            ),
+            
+            # Config par classe
+            html.Div(id="color-class-config", children=[
+                html.P("Définir les intervalles :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
+                html.Div([
+                    dcc.Input(id="class1-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class1-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class1-color", type="text", placeholder="#couleur", value="#084594", style={"width": "80px", "fontSize": "11px"}),
+                    html.Span("Classe 1", style={"fontSize": "11px", "color": "#555"})
+                ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
+                html.Div([
+                    dcc.Input(id="class2-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class2-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class2-color", type="text", placeholder="#couleur", value="#2171b5", style={"width": "80px", "fontSize": "11px"}),
+                    html.Span("Classe 2", style={"fontSize": "11px", "color": "#555"})
+                ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
+                html.Div([
+                    dcc.Input(id="class3-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class3-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
+                    dcc.Input(id="class3-color", type="text", placeholder="#couleur", value="#6baed6", style={"width": "80px", "fontSize": "11px"}),
+                    html.Span("Classe 3", style={"fontSize": "11px", "color": "#555"})
+                ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
+            ], style={"display": "none"}),
+            
+            # Couleur par défaut (mode single)
+            html.Div(id="color-single-config", children=[
+                html.P("Couleur unique :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
+                dcc.Input(id="single-color", type="text", placeholder="#2c7fb8", value="#2c7fb8",
+                    style={"width": "100%", "fontSize": "12px", "padding": "6px", "borderRadius": "6px", "border": "1px solid #dce8f5"})
+            ], style={"display": "block"}),
+
+            # Config par province
+            html.Div(id="color-province-config", children=[
+                html.P("Couleur par province :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
+                html.Div([
+                    dcc.Dropdown(id="color-province-select", placeholder="Province...",
+                        style={"flex": "1", "fontSize": "11px", "marginBottom": "6px"}),
+                    dcc.Input(id="color-province-value", type="text", placeholder="#2c7fb8",
+                        style={"width": "80px", "fontSize": "11px", "padding": "6px",
+                               "borderRadius": "6px", "border": "1px solid #dce8f5"}),
+                    html.Button("✓", id="btn-add-province-color", n_clicks=0,
+                        style={"padding": "6px 10px", "backgroundColor": "#2c7fb8", "color": "white",
+                               "border": "none", "borderRadius": "6px", "cursor": "pointer", "marginLeft": "4px"})
+                ], style={"display": "flex", "gap": "4px", "alignItems": "center", "flexWrap": "wrap"}),
+                html.Div(id="province-color-tags", style={"marginTop": "6px", "display": "flex", "flexWrap": "wrap", "gap": "4px"})
+            ], style={"display": "none"}),
+
+            html.Hr(style={"marginTop": "20px", "marginBottom": "15px"}),  
+
             html.Button("🔓 Déconnexion", id="btn-logout", n_clicks=0, style={
                 "backgroundColor": "#FFF0F0", "color": "#c0392b",
                 "border": "1px solid #f5c0c0", "padding": "6px 14px",
@@ -754,13 +823,95 @@ app.layout = html.Div([
     dcc.Location(id="url", refresh=False),
     dcc.Store(id="stored-values", storage_type="session", data={}),
     dcc.Store(id="excel-contents-store", storage_type="session", data=None),
+    dcc.Store(id="province-colors-store", storage_type="session", data={}),
     html.Div(id="page-content")
 ])
+
 # ================= UPDATE PROVINCES =================
+
+    
+@app.callback(
+    Output("color-class-config", "style"),
+    Output("color-single-config", "style"),
+    Output("color-province-config", "style"),
+    Input("color-mode", "value")
+)
+def toggle_color_config(mode):
+    if mode == "class":
+        return {"display": "block"}, {"display": "none"}, {"display": "none"}
+    elif mode == "single":
+        return {"display": "none"}, {"display": "block"}, {"display": "none"}
+    elif mode == "province":
+        return {"display": "none"}, {"display": "none"}, {"display": "block"}
+    return {"display": "none"}, {"display": "block"}, {"display": "none"}
+@app.callback(
+    Output("color-province-select", "options"),
+    Input("filter-region", "value")
+)
+def update_color_province_options(region_name):
+    if not region_name:
+        return []
+    if region_name == "Maroc":
+        return [{"label": r, "value": r} for r in REGIONS_LEVEL1]
+    if region_name in REGIONS_GROUPES:
+        provinces = [f for f in geo_provinces["features"]
+                     if f["properties"]["shape1"] in REGIONS_GROUPES[region_name]]
+    else:
+        provinces = [f for f in geo_provinces["features"]
+                     if f["properties"]["shape1"] == region_name]
+    return [{"label": f["properties"]["shape2"], "value": f["properties"]["shape2"]}
+            for f in provinces]
+
+@app.callback(
+    Output("province-colors-store", "data"),
+    Output("province-color-tags", "children"),
+    Input("btn-add-province-color", "n_clicks"),
+    Input("btn-clear", "n_clicks"),
+    State("color-province-select", "value"),
+    State("color-province-value", "value"),
+    State("province-colors-store", "data"),
+    State("filter-region", "value"),
+    prevent_initial_call=True
+)
+def save_province_color(n_add, n_clear, province, color, current_colors, region_name):
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
+    
+    current_colors = current_colors or {}
+    
+    if "btn-clear" in triggered and region_name:
+        # Effacer les couleurs de la région courante
+        current_colors = {k: v for k, v in current_colors.items() 
+                         if k not in ([region_name] if region_name == "Maroc" else [])}
+        current_colors = {}
+    
+    elif "btn-add-province-color" in triggered and province and color:
+        current_colors[province] = color
+
+    # Générer les tags
+    tags = []
+    for prov, col in current_colors.items():
+        tags.append(html.Div([
+            html.Div(style={
+                "width": "12px", "height": "12px",
+                "backgroundColor": col, "borderRadius": "3px",
+                "display": "inline-block", "marginRight": "4px"
+            }),
+            html.Span(prov[:12] + "..." if len(prov) > 12 else prov,
+                     style={"fontSize": "10px"}),
+        ], style={
+            "display": "inline-flex", "alignItems": "center",
+            "padding": "3px 8px", "background": "#EBF4FF",
+            "borderRadius": "20px", "border": "0.5px solid #b3d4f5"
+        }))
+    
+    return current_colors, tags
+
 @app.callback(
     Output("dropdown-province", "options"),
     Input("filter-region", "value")
 )
+
 def update_provinces(region_name):
 
     if not region_name:
@@ -869,11 +1020,22 @@ def store_excel(contents):
     State("dropdown-province", "value"),
     State("input-value", "value"),
     State("input-evolution", "value"),
+    State("show-percent", "value"),
+    State("color-mode", "value"),
+    State("single-color", "value"),
+    State("class1-min", "value"), State("class1-max", "value"), State("class1-color", "value"),
+    State("class2-min", "value"), State("class2-max", "value"), State("class2-color", "value"),
+    State("class3-min", "value"), State("class3-max", "value"), State("class3-color", "value"),
+    State("province-colors-store", "data"),
 )
 
 
 def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values, region_name,
-                  selected_province, val, evo):
+                  selected_province, val, evo, show_percent,color_mode, single_color,
+                  c1min, c1max, c1color,
+                  c2min, c2max, c2color,
+                  c3min, c3max, c3color,
+                  province_colors):
     # Initialiser si vide
     if not stored_values:
         stored_values = {region: {} for region in regions}
@@ -896,17 +1058,22 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             df, key_col = parse_excel(excel_trigger)
             for _, row in df.iterrows():
                 r = str(row["region"]).strip()
+                
+                # Convertir NaN en None
+                part_val = None if pd.isna(row["part"]) else row["part"]
+                evo_val  = None if pd.isna(row["evolution"]) else row["evolution"]
+                
                 if key_col == "province":
                     p = str(row["province"]).strip()
                     if r in stored_values:
                         stored_values[r][p] = {
-                            "part": row["part"],
-                            "evolution": row["evolution"]
+                            "part": part_val,
+                            "evolution": evo_val
                         }
                 else:
                     stored_values["Maroc"][r] = {
-                        "part": row["part"],
-                        "evolution": row["evolution"]
+                        "part": part_val,
+                        "evolution": evo_val
                     }
         except Exception as e:
             print(f"Erreur: {e}")
@@ -998,16 +1165,35 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
     fig = go.Figure()
 
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=geojson_data,
-        locations=[f["properties"][name_key] for f in features],
-        z=[1] * len(features),
-        featureidkey=featureidkey,
-        colorscale=[[0, "#2c7fb8"], [1, "#2c7fb8"]],
-        showscale=False,
-        marker_line_color="white",
-        marker_line_width=2
-    ))
+    # Calculer les couleurs par feature
+    colors = []
+    for f in features:
+        name = f["properties"][name_key]
+        data = stored_values[region_name].get(name, {})
+        part = data.get("part")
+        c = get_province_color(
+            part, color_mode, single_color,
+            c1min, c1max, c1color,
+            c2min, c2max, c2color,
+            c3min, c3max, c3color,
+            province_name=name, province_colors=province_colors
+        )
+        colors.append(c)
+
+    # Une trace par province pour couleur individuelle
+    for i, f in enumerate(features):
+        name = f["properties"][name_key]
+        fig.add_trace(go.Choroplethmapbox(
+            geojson={"type": "FeatureCollection", "features": [f]},
+            locations=[name],
+            z=[1],
+            featureidkey=f"properties.{name_key}",
+            colorscale=[[0, colors[i]], [1, colors[i]]],
+            showscale=False,
+            marker_line_color="white",
+            marker_line_width=2,
+            hoverinfo="skip"
+        ))
 
     centers = [province_center(f) for f in features]
     region_mid_lon = sum(c[0] for c in centers) / len(centers)
@@ -1090,7 +1276,10 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         if part is not None and str(part).strip() != "":
             part_float = float(part)
             part_display = int(part_float) if part_float == int(part_float) else part_float
-            label_text += f"\u00A0{part_display}%"
+            if show_percent and "percent" in show_percent:
+                label_text += f"\u00A0{part_display}%"
+            else:
+                label_text += f"\u00A0{part_display}"
 
 
         # ===== Nom + Part % =====
@@ -1150,6 +1339,36 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
     return fig, stored_values
 
+def get_province_color(part, color_mode, single_color,
+                        c1min, c1max, c1color,
+                        c2min, c2max, c2color,
+                        c3min, c3max, c3color,
+                        province_name=None, province_colors=None):
+    
+    default_color = single_color or "#2c7fb8"
+    
+    if color_mode == "single":
+        return default_color
+    
+    elif color_mode == "province" and province_colors and province_name in province_colors:
+        return province_colors[province_name]
+    
+    elif color_mode == "class" and part is not None:
+        try:
+            part_val = float(part)
+            classes = [
+                (c1min, c1max, c1color),
+                (c2min, c2max, c2color),
+                (c3min, c3max, c3color),
+            ]
+            for cmin, cmax, ccolor in classes:
+                if cmin is not None and cmax is not None and ccolor:
+                    if float(cmin) <= part_val <= float(cmax):
+                        return ccolor
+        except:
+            pass
+    
+    return default_color
 # ===== ROUTING =====
 @app.callback(
     Output("page-content", "children"),
