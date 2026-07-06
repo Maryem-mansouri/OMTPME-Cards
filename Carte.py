@@ -77,9 +77,6 @@ MAP_LABEL_CONFIG = {
         }
     },
     
-
-
-
     "Tanger-Tétouan-Al Hoceima": {
         "default_length": 0.45,
         "provinces": {
@@ -125,7 +122,7 @@ MAP_LABEL_CONFIG = {
         "Kénitra": {"length": 0.5, "side": "left"},
         "Sidi Slimane": {"length": 0.90, "side": "right","anchor_offset": {"lon": 0.0, "lat": -0.08}},
         "Sidi Kacem": {"length": 0.60, "side": "right","anchor_offset": {"lon": 0.2, "lat": 0.05}},
-        "Khemisset": {"length": 0.45, "side": "right","anchor_offset": {"lon": 0.35, "lat": 0.0}}
+        "Khémisset": {"length": 0.45, "side": "right","anchor_offset": {"lon": 0.35, "lat": 0.0}}
     }
 },
     "Béni Mellal-Khénifra": {
@@ -133,7 +130,7 @@ MAP_LABEL_CONFIG = {
         "provinces": {
             "Khouribga": {"length": 0.65, "side": "left","anchor_offset": {"lon": -0.2, "lat": 0.0}},
             "Fquih Ben Saleh": {"length": 0.65, "side": "left","anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Beni Mellal": {"length": 0.50, "side": "right","anchor_offset": {"lon": 0.5, "lat": -0.1}},
+            "Béni Mellal": {"length": 0.50, "side": "right","anchor_offset": {"lon": 0.5, "lat": -0.1}},
             "Azilal": {"length": 0.7, "side": "left","anchor_offset": {"lon": 0.06, "lat": 0.0}},
             "Khénifra": {"length": 0.6, "side": "right","anchor_offset": {"lon": 0.2, "lat": 0.0}},
         }
@@ -180,7 +177,7 @@ MAP_LABEL_CONFIG = {
             "El Kelâa des Sraghna": {"length": 0.6, "side": "right","anchor_offset": {"lon": 0.05, "lat": 0.0}},
             "Chichaoua": {"length": 1.5, "side": "left","anchor_offset": {"lon": 0.0, "lat": -0.06}},
             "Marrakech": {"length": 1.2, "side": "right","anchor_offset": {"lon": 0.0, "lat": 0.0}},
-            "Rhamna": {"length": 0.70, "side": "right","anchor_offset": {"lon": 0.1, "lat": 0.0}},
+            "Rehamna": {"length": 0.70, "side": "right","anchor_offset": {"lon": 0.1, "lat": 0.0}},
             "Safi": {"length": 0.5, "side": "left","anchor_offset": {"lon": 0.0, "lat": 0.0}},
             "Essaouira": {"length": 0.5, "side": "left","anchor_offset": {"lon": 0.0, "lat": -0.1}},
             
@@ -208,9 +205,9 @@ MAP_LABEL_CONFIG = {
         "evo_size": 17,
         "provinces": {
             "Chtouka-Aït Baha": {"length": 0.7, "side": "left","anchor_offset": {"lon": 0.0, "lat": -0.09}},
-            "Inezgane-Ait Melloul": {"length": 0.5, "side": "left","anchor_offset": {"lon": 0.0, "lat": -0.04}},
+            "Inezgane-Aït Melloul": {"length": 0.5, "side": "left","anchor_offset": {"lon": 0.0, "lat": -0.04}},
             "Tiznit": {"length": 0.7, "side": "left","anchor_offset": {"lon": -0.1, "lat": -0.03}},
-            "Agadir Ida-Outanane": {"length": 0.7, "side": "left","anchor_offset": {"lon": 0.0, "lat": 0.1}},
+            "Agadir-Ida-Outanane": {"length": 0.7, "side": "left","anchor_offset": {"lon": 0.0, "lat": 0.1}},
             "Taroudant": {"length": 0.7, "side": "right","anchor_offset": {"lon": 0.4, "lat": 0.1}},
             "Tata": {"length": 0.8, "side": "right","anchor_offset": {"lon": -0.2, "lat": -0.2}},
 
@@ -292,7 +289,6 @@ def province_center(feature):
     lat = sum(pt[1] for pt in coords) / len(coords)
 
     return lon, lat
-
 
 def parse_excel(contents):
     content_type, content_string = contents.split(",")
@@ -828,8 +824,6 @@ app.layout = html.Div([
 ])
 
 # ================= UPDATE PROVINCES =================
-
-    
 @app.callback(
     Output("color-class-config", "style"),
     Output("color-single-config", "style"),
@@ -844,6 +838,7 @@ def toggle_color_config(mode):
     elif mode == "province":
         return {"display": "none"}, {"display": "none"}, {"display": "block"}
     return {"display": "none"}, {"display": "block"}, {"display": "none"}
+
 @app.callback(
     Output("color-province-select", "options"),
     Input("filter-region", "value")
@@ -998,6 +993,7 @@ def download_template(n_clicks, region_name):
         filename=filename,
         base64=True
     )
+
 # ================= HANDLE EXCEL UPLOAD =================
 @app.callback(
     Output("excel-contents-store", "data"),
@@ -1006,7 +1002,6 @@ def download_template(n_clicks, region_name):
 )
 def store_excel(contents):
     return contents
-
 
 @app.callback(
     Output("graph-region", "figure"),
@@ -1275,7 +1270,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             
         if part is not None and str(part).strip() != "":
             part_float = float(part)
-            part_display = int(part_float) if part_float == int(part_float) else part_float
+            part_display = int(part_float) if part_float == int(part_float) else str(part_float).replace(".", ",")
             if show_percent and "percent" in show_percent:
                 label_text += f"\u00A0{part_display}%"
             else:
@@ -1306,7 +1301,8 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             evo_float = float(evo)
             sign  = "+" if evo_float >= 0 else "-"
             color = "#1a9641" if evo_float >= 0 else "#d7191c"
-            evo_display = int(evo_float) if evo_float == int(evo_float) else evo_float
+            evo_abs_float = abs(evo_float)
+            evo_abs = int(evo_abs_float) if evo_abs_float == int(evo_abs_float) else str(evo_abs_float).replace(".", ",")
             fig.add_trace(go.Scattermapbox(
                 lon=[label_lon],
                 lat=[label_lat - lat_offset_evo],
@@ -1318,14 +1314,12 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                     allowoverlap=True,
                     opacity=1
                 ),
-                
-                text=[f"  {sign}{abs(evo_display)}%"],
+                text=[f"  {sign}{evo_abs}%"],
                 textposition="middle right",
                 textfont=dict(size=evo_size, color=color),
                 showlegend=False,
                 hoverinfo="skip"
             ))
-
     fig.update_layout(
         mapbox=dict(
             style="white-bg",
@@ -1369,6 +1363,7 @@ def get_province_color(part, color_mode, single_color,
             pass
     
     return default_color
+
 # ===== ROUTING =====
 @app.callback(
     Output("page-content", "children"),
