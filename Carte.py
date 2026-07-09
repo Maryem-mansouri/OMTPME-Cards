@@ -37,7 +37,7 @@ print([f["properties"]["shape1"] for f in geo_regions["features"]])
 
 regions = [
     "Maroc", "Tanger-Tétouan-Al Hoceima", "Casablanca-Settat", "Rabat-Salé-Kénitra",
-    "Béni Mellal-Khénifra", "Oriental", "Fès-Meknès",
+    "Béni Mellal-Khénifra", "L'Oriental", "Fès-Meknès",
     "Marrakech-Safi", "Drâa-Tafilalet", "Souss-Massa",
     "Laâyoune-Sakia El Hamra", "Dakhla-Oued Ed-Dahab",
     "Guelmim-Oued Noun", "Régions du Sud"
@@ -59,11 +59,11 @@ MAP_LABEL_CONFIG = {
     "Maroc": {
         "default_length": 0.5,
         "zoom": 3.8,
-        "text_size": 15,
-        "evo_size": 13,
+        "text_size": 17,
+        "evo_size": 16,
         "provinces": {
             "Tanger-Tétouan-Al Hoceima": {"length": 3.5, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
-            "Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
             "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.1}},
             "Rabat-Salé-Kénitra":        {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
             "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
@@ -150,7 +150,7 @@ MAP_LABEL_CONFIG = {
             "Meknès": {"length": 0.6, "side": "left","anchor_offset": {"lon": -0.4, "lat": 0.05}}
         }
     },
-      "Oriental": {
+      "L'Oriental": {
         "default_length": 0.45,
         "zoom": 5.4,
         "text_size": 18,
@@ -1284,7 +1284,10 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                 lon=[label_lon], lat=[label_lat + lat_offset_text],
                 mode="text",
                 text=[label_text],
-                textfont=dict(size=text_size, color="black", weight="bold"),
+                textfont=dict(
+                    size=text_size,
+                    color="black",
+                    weight="bold"),
                 showlegend=False
             ))
         else:
