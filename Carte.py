@@ -587,7 +587,7 @@ main_layout = html.Div([
 
             dcc.Dropdown(
                 id="dropdown-province",
-                placeholder="Province",
+                placeholder="Province / Région",
                 style={"marginBottom": "10px"}
             ),
 
@@ -694,7 +694,7 @@ main_layout = html.Div([
                 id="color-mode",
                 options=[
                     {"label": " Par classe (intervalles)", "value": "class"},
-                    {"label": " Par province", "value": "province"},
+                    {"label": " Par province / région ", "value": "province"},
                     {"label": " Couleur unique", "value": "single"},
                 ],
                 value="single",
@@ -707,19 +707,19 @@ main_layout = html.Div([
                 html.Div([
                     dcc.Input(id="class1-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
                     dcc.Input(id="class1-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
-                    dcc.Input(id="class1-color", type="text", placeholder="#couleur", value="#084594", style={"width": "80px", "fontSize": "11px"}),
+                    dcc.Input(id="class1-color", type="text", placeholder="#couleur", value="#a9d6e5", style={"width": "80px", "fontSize": "11px"}),
                     html.Span("Classe 1", style={"fontSize": "11px", "color": "#555"})
                 ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
                 html.Div([
                     dcc.Input(id="class2-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
                     dcc.Input(id="class2-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
-                    dcc.Input(id="class2-color", type="text", placeholder="#couleur", value="#2171b5", style={"width": "80px", "fontSize": "11px"}),
+                    dcc.Input(id="class2-color", type="text", placeholder="#couleur", value="#6baed6", style={"width": "80px", "fontSize": "11px"}),
                     html.Span("Classe 2", style={"fontSize": "11px", "color": "#555"})
                 ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
                 html.Div([
                     dcc.Input(id="class3-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
                     dcc.Input(id="class3-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
-                    dcc.Input(id="class3-color", type="text", placeholder="#couleur", value="#6baed6", style={"width": "80px", "fontSize": "11px"}),
+                    dcc.Input(id="class3-color", type="text", placeholder="#couleur", value="#2171b5", style={"width": "80px", "fontSize": "11px"}),
                     html.Span("Classe 3", style={"fontSize": "11px", "color": "#555"})
                 ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
             ], style={"display": "none"}),
@@ -733,9 +733,9 @@ main_layout = html.Div([
 
             # Config par province
             html.Div(id="color-province-config", children=[
-                html.P("Couleur par province :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
+                html.P("Couleur par province / région :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
                 html.Div([
-                    dcc.Dropdown(id="color-province-select", placeholder="Province...",
+                    dcc.Dropdown(id="color-province-select", placeholder="Province / Région ...",
                         style={"flex": "1", "fontSize": "11px", "marginBottom": "6px"}),
                     dcc.Input(id="color-province-value", type="text", placeholder="#2c7fb8",
                         style={"width": "80px", "fontSize": "11px", "padding": "6px",
