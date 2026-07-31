@@ -59,8 +59,8 @@ MAP_LABEL_CONFIG = {
     "Maroc": {
         "default_length": 0.5,
         "zoom": 3.8,
-        "text_size": 17,
-        "evo_size": 16,
+        "text_size": 18,
+        "evo_size": 17,
         "provinces": {
             "Tanger-Tétouan-Al Hoceima": {"length": 3.5, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
             "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
@@ -604,11 +604,18 @@ main_layout = html.Div([
             style={"marginBottom": "10px", "fontSize": "13px", "color": "#555"}
             ),
 
+
             dcc.Input(
                 id="input-evolution",
                 type="number",
                 placeholder="Evolution %",
                 style={"width": "100%", "marginBottom": "15px"}
+            ),
+            dcc.Checklist(
+                id="invert-colors",
+                options=[{"label": " Mode dissolutions", "value": "invert"}],
+                value=[],
+                style={"marginBottom": "10px", "fontSize": "13px", "color": "#555"}
             ),
 
             html.Button(
@@ -1015,6 +1022,7 @@ def store_excel(contents):
     State("dropdown-province", "value"),
     State("input-value", "value"),
     State("input-evolution", "value"),
+    State("invert-colors", "value"),
     State("show-percent", "value"),
     State("color-mode", "value"),
     State("single-color", "value"),
@@ -1026,7 +1034,7 @@ def store_excel(contents):
 
 
 def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values, region_name,
-                  selected_province, val, evo, show_percent,color_mode, single_color,
+                  selected_province, val, evo,invert_colors, show_percent,color_mode, single_color,
                   c1min, c1max, c1color,
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
@@ -1270,7 +1278,8 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             
         if part is not None and str(part).strip() != "":
             part_float = float(part)
-            part_display = int(part_float) if part_float == int(part_float) else str(part_float).replace(".", ",")
+            part_rounded = round(part_float, 1)
+            part_display = int(part_rounded) if part_rounded == int(part_rounded) else str(part_rounded).replace(".", ",")
             if show_percent and "percent" in show_percent:
                 label_text += f"\u00A0{part_display}%"
             else:
@@ -1303,9 +1312,13 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         if evo is not None and str(evo).strip() != "":
             evo_float = float(evo)
             sign  = "+" if evo_float >= 0 else "-"
-            color = "#1a9641" if evo_float >= 0 else "#d7191c"
+            if invert_colors and "invert" in invert_colors:
+                color = "#d7191c" if evo_float >= 0 else "#1a9641"
+            else:
+                 color = "#1a9641" if evo_float >= 0 else "#d7191c"
             evo_abs_float = abs(evo_float)
-            evo_abs = int(evo_abs_float) if evo_abs_float == int(evo_abs_float) else str(evo_abs_float).replace(".", ",")
+            evo_abs_rounded = round(evo_abs_float, 1)
+            evo_abs = int(evo_abs_rounded) if evo_abs_rounded == int(evo_abs_rounded) else str(evo_abs_rounded).replace(".", ",")
             fig.add_trace(go.Scattermapbox(
                 lon=[label_lon],
                 lat=[label_lat - lat_offset_evo],
