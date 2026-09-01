@@ -10,6 +10,8 @@ import base64
 import os
 from flask import session
 from auth import is_email_allowed, register_user, verify_user
+from shapely.geometry import shape, mapping
+from shapely.ops import unary_union
 
 
 # ================= SVG FLECHES EN BASE64 =================  ← ICI
@@ -35,8 +37,10 @@ with open("morocco_Region_level_1.geojson", encoding="utf-8") as f:
 print([f["properties"]["shape1"] for f in geo_regions["features"]])
 
 
+MAROC_SUD_COMBINE = "Maroc - Régions du Sud combinées"
+
 regions = [
-    "Maroc", "Tanger-Tétouan-Al Hoceima", "Casablanca-Settat", "Rabat-Salé-Kénitra",
+    "Maroc", MAROC_SUD_COMBINE, "Tanger-Tétouan-Al Hoceima", "Casablanca-Settat", "Rabat-Salé-Kénitra",
     "Béni Mellal-Khénifra", "L'Oriental", "Fès-Meknès",
     "Marrakech-Safi", "Drâa-Tafilalet", "Souss-Massa",
     "Laâyoune-Sakia El Hamra", "Dakhla-Oued Ed-Dahab",
@@ -53,6 +57,26 @@ REGIONS_GROUPES = {
 
 # Mapping pour récupérer les noms shape1 des régions
 REGIONS_LEVEL1 = [f["properties"]["shape1"] for f in geo_regions["features"]]
+
+# ================= MAROC AVEC RÉGIONS DU SUD FUSIONNÉES =================
+def build_combined_south_geojson(geo_regions_data, south_names):
+    """Fusionne les géométries des régions listées dans south_names en une seule
+    forme, et renvoie une nouvelle FeatureCollection région-level où ces régions
+    sont remplacées par une unique feature 'Régions du Sud'."""
+    south_features = [f for f in geo_regions_data["features"] if f["properties"]["shape1"] in south_names]
+    other_features = [f for f in geo_regions_data["features"] if f["properties"]["shape1"] not in south_names]
+
+    merged_geom = unary_union([shape(f["geometry"]) for f in south_features])
+    merged_feature = {
+        "type": "Feature",
+        "properties": {"shape1": "Régions du Sud"},
+        "geometry": mapping(merged_geom)
+    }
+
+    return {"type": "FeatureCollection", "features": other_features + [merged_feature]}
+
+geo_regions_sud_combine = build_combined_south_geojson(geo_regions, REGIONS_GROUPES["Régions du Sud"])
+REGIONS_LEVEL1_COMBINE = [f["properties"]["shape1"] for f in geo_regions_sud_combine["features"]]
 
 # ================= CONFIG LABEL =================
 MAP_LABEL_CONFIG = {
@@ -76,7 +100,25 @@ MAP_LABEL_CONFIG = {
             "Dakhla-Oued Ed-Dahab":      {"length": 3, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
         }
     },
-    
+    MAROC_SUD_COMBINE: {
+        "default_length": 0.5,
+        "zoom": 3.8,
+        "text_size": 18,
+        "evo_size": 17,
+        "provinces": {
+            "Tanger-Tétouan-Al Hoceima": {"length": 3.5, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
+            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.1}},
+            "Rabat-Salé-Kénitra":        {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
+            "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Casablanca-Settat":         {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
+            "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Régions du Sud":            {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.3}},
+        }
+    },
+
     "Tanger-Tétouan-Al Hoceima": {
         "default_length": 0.45,
         "provinces": {
@@ -836,6 +878,8 @@ def update_color_province_options(region_name):
         return []
     if region_name == "Maroc":
         return [{"label": r, "value": r} for r in REGIONS_LEVEL1]
+    if region_name == MAROC_SUD_COMBINE:
+        return [{"label": r, "value": r} for r in REGIONS_LEVEL1_COMBINE]
     if region_name in REGIONS_GROUPES:
         provinces = [f for f in geo_provinces["features"]
                      if f["properties"]["shape1"] in REGIONS_GROUPES[region_name]]
@@ -904,6 +948,10 @@ def update_provinces(region_name):
     if region_name == "Maroc":
         return [{"label": r, "value": r} for r in REGIONS_LEVEL1]
 
+    # ← CAS MAROC AVEC SUD FUSIONNÉ : le 2ème dropdown affiche les régions, Sud groupé
+    if region_name == MAROC_SUD_COMBINE:
+        return [{"label": r, "value": r} for r in REGIONS_LEVEL1_COMBINE]
+
     if region_name in REGIONS_GROUPES:
         provinces = [
             f for f in geo_provinces["features"]
@@ -934,6 +982,12 @@ def download_template(n_clicks, region_name):
             "region":    REGIONS_LEVEL1,
             "part":      [""] * len(REGIONS_LEVEL1),
             "evolution": [""] * len(REGIONS_LEVEL1)
+        })
+    elif region_name == MAROC_SUD_COMBINE:
+        df_template = pd.DataFrame({
+            "region":    REGIONS_LEVEL1_COMBINE,
+            "part":      [""] * len(REGIONS_LEVEL1_COMBINE),
+            "evolution": [""] * len(REGIONS_LEVEL1_COMBINE)
         })
     elif region_name in REGIONS_GROUPES:
         provinces = [
@@ -1055,7 +1109,10 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                             "evolution": evo_val
                         }
                 else:
-                    stored_values["Maroc"][r] = {
+                    target_region = region_name if region_name in ("Maroc", MAROC_SUD_COMBINE) else "Maroc"
+                    if target_region not in stored_values:
+                        stored_values[target_region] = {}
+                    stored_values[target_region][r] = {
                         "part": part_val,
                         "evolution": evo_val
                     }
@@ -1138,6 +1195,11 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         geojson_data = geo_regions
         featureidkey = "properties.shape1"
         name_key = "shape1"
+    elif region_name == MAROC_SUD_COMBINE:
+        features = geo_regions_sud_combine["features"]
+        geojson_data = geo_regions_sud_combine
+        featureidkey = "properties.shape1"
+        name_key = "shape1"
     elif region_name in REGIONS_GROUPES:
         features = [f for f in geo_provinces["features"]
                     if f["properties"]["shape1"] in REGIONS_GROUPES[region_name]]
@@ -1193,7 +1255,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
     text_size    = MAP_LABEL_CONFIG.get(region_name, {}).get("text_size") or max(15, int(region_zoom * 2.5))
     evo_size     = MAP_LABEL_CONFIG.get(region_name, {}).get("evo_size")  or max(10, int(region_zoom * 2.2))
     diamond_size = max(10, int(region_zoom * 1.8))
-    if region_name == "Maroc":
+    if region_name in ("Maroc", MAROC_SUD_COMBINE):
         lat_offset_text = 0.22
         lat_offset_evo  = 0.28
     else:
@@ -1256,7 +1318,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
         # ===== Nom + Part % =====
         # Nom + Part %
-        if region_name == "Maroc":
+        if region_name in ("Maroc", MAROC_SUD_COMBINE):
             label_text = name.replace("-", " ").replace(" ", "\u00A0")
         else:
             label_text = name.replace(" ", "\u00A0")
@@ -1272,7 +1334,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
 
         # ===== Nom + Part % =====
-        if region_name == "Maroc":
+        if region_name in ("Maroc", MAROC_SUD_COMBINE):
             # Trace invisible pour positionner, puis trace gras séparé
             fig.add_trace(go.Scattermapbox(
                 lon=[label_lon], lat=[label_lat + lat_offset_text],
