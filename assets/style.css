@@ -117,6 +117,19 @@ input[type="number"]:focus, input[type="text"]:focus, input[type="email"]:focus,
   box-shadow: 0 0 0 3px var(--om-blue-light) !important;
 }
 
+/* Empêche le navigateur d'imposer son propre fond/bordure jaunâtre
+   sur les champs email/mot de passe mémorisés (autofill Chrome/Firefox) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--om-text) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--om-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--om-bg) inset !important;
+  border: 0.5px solid var(--om-border) !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .Select-control {
   border-radius: 8px !important;
 }
