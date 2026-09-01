@@ -268,7 +268,10 @@ MAP_LABEL_CONFIG = {
 
 # ================= APP =================
 app = dash.Dash(__name__,
-    assets_folder=os.path.join(os.path.dirname(__file__), "assets"))
+    assets_folder=os.path.join(os.path.dirname(__file__), "assets"),
+    external_stylesheets=[
+        "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css"
+    ])
 app.title = "Carte interactive des régions du Maroc"
 
 server = app.server
@@ -391,7 +394,7 @@ login_layout = html.Div([
             "background": "white", "padding": "38px 34px",
             "borderRadius": "16px", "width": "340px",
             "border": "0.5px solid #dce8f5"
-        })
+        }, className="omt-auth-card")
     ], style={
         "display": "flex", "alignItems": "center",
         "justifyContent": "center", "minHeight": "100vh",
@@ -487,7 +490,7 @@ register_layout = html.Div([
             "background": "white", "padding": "38px 34px",
             "borderRadius": "16px", "width": "340px",
             "border": "0.5px solid #dce8f5"
-        })
+        }, className="omt-auth-card")
     ], style={
         "display": "flex", "alignItems": "center",
         "justifyContent": "center", "minHeight": "100vh",
@@ -517,8 +520,8 @@ main_layout = html.Div([
         html.Img(
             src="/assets/Logo.png",
             style={
-                "height": "50px",
-                "marginRight": "15px"
+                "height": "38px",
+                "marginRight": "14px"
             }
         ),
 
@@ -526,11 +529,11 @@ main_layout = html.Div([
         html.Div([
             html.H2(
                 "Tableau de Bord des Régions",
-                style={"marginBottom": "2px","color": "#3F82AD"}
+                className="omt-header-title"
             ),
             html.P(
                 "Analyse interactive des indicateurs par province",
-                style={"color": "#3F82AD", "marginTop": "0px"}
+                className="omt-header-sub"
             )
         ])
 
@@ -540,29 +543,18 @@ main_layout = html.Div([
     }),
         html.Div([
             html.Div([
-                html.Div("12", style={"fontSize": "20px", "fontWeight": "bold", "color": "#2c7fb8"}),
-                html.Div("Régions", style={"fontSize": "11px", "color": "#888"})
-            ], style={
-                "textAlign": "center", "padding": "8px 16px",
-                "background": "#f5f8fc", "borderRadius": "8px",
-                "border": "0.5px solid #dce8f5"
-            }),
+                html.Div("12", className="omt-stat-value"),
+                html.Div("Régions", className="omt-stat-label")
+            ], className="omt-stat-pill"),
             html.Div([
-                html.Div("75", style={"fontSize": "20px", "fontWeight": "bold", "color": "#27ae60"}),
-                html.Div("Provinces", style={"fontSize": "11px", "color": "#888"})
-            ], style={
-                "textAlign": "center", "padding": "8px 16px",
-                "background": "#f5fcf8", "borderRadius": "8px",
-                "border": "0.5px solid #d5f0e2"
-            }),
+                html.Div("75", className="omt-stat-value"),
+                html.Div("Provinces", className="omt-stat-label")
+            ], className="omt-stat-pill"),
         ], style={"display": "flex", "gap": "10px", "marginLeft": "auto", "alignItems": "center"})
 
-], style={
-    "padding": "15px 25px",
-    "backgroundColor": "#FFFFFF",
-    "boxShadow": "0px 2px 6px rgba(0,0,0,0.05)",
-    "display": "flex",                        # ← AJOUTER
-    "alignItems": "center",                   # ← AJOUTER
+], className="omt-header", style={
+    "display": "flex",
+    "alignItems": "center",
     "justifyContent": "space-between"
 }),
 
@@ -573,17 +565,25 @@ main_layout = html.Div([
         # ===== LEFT PANEL =====
         html.Div([
 
-            html.H4("Configuration"),
+            html.Div([
 
-            html.Label("Région cible"),
+            html.Div([
+                html.I(className="ti ti-filter", style={"marginRight": "6px", "color": "#2C7FB8"}),
+                "Région cible"
+            ], className="omt-card-title"),
             dcc.Dropdown(
                 id="filter-region",
                 options=[{"label": r, "value": r} for r in regions],
                 placeholder="Sélectionner une région",
-                style={"marginBottom": "15px"}
             ),
+            ], className="omt-card omt-card-blue"),
 
-            html.H5("Données manuelles", style={"marginTop": "20px"}),
+            html.Div([
+
+            html.Div([
+                html.I(className="ti ti-edit", style={"marginRight": "6px", "color": "#2C7FB8"}),
+                "Données manuelles"
+            ], className="omt-card-title"),
 
             dcc.Dropdown(
                 id="dropdown-province",
@@ -597,11 +597,13 @@ main_layout = html.Div([
                 placeholder="Part %",
                 style={"width": "100%", "marginBottom": "10px"}
             ),
-            dcc.Checklist(
-            id="show-percent",
-            options=[{"label": " Afficher le signe %", "value": "percent"}],
-            value=["percent"],  # coché par défaut
-            style={"marginBottom": "10px", "fontSize": "13px", "color": "#555"}
+            html.Div(
+                dcc.Checklist(
+                    id="show-percent",
+                    options=[{"label": " Afficher le signe %", "value": "percent"}],
+                    value=["percent"],
+                ),
+                className="omt-toggle", style={"marginBottom": "10px"}
             ),
 
 
@@ -609,78 +611,58 @@ main_layout = html.Div([
                 id="input-evolution",
                 type="number",
                 placeholder="Evolution %",
-                style={"width": "100%", "marginBottom": "15px"}
+                style={"width": "100%", "marginBottom": "10px"}
             ),
-            dcc.Checklist(
-                id="invert-colors",
-                options=[{"label": " Mode dissolutions", "value": "invert"}],
-                value=[],
-                style={"marginBottom": "10px", "fontSize": "13px", "color": "#555"}
+            html.Div(
+                dcc.Checklist(
+                    id="invert-colors",
+                    options=[{"label": " Mode dissolutions", "value": "invert"}],
+                    value=[],
+                ),
+                className="omt-toggle"
             ),
+            ], className="omt-card omt-card-blue"),
 
             html.Button(
                 "Mettre à jour la carte",
                 id="btn-update",
                 n_clicks=0,
-                style={
-                    "width": "100%",
-                    "backgroundColor": "#2E63D3",
-                    "color": "white",
-                    "border": "none",
-                    "padding": "10px",
-                    "borderRadius": "6px",
-                    "fontWeight": "bold"
-                }
+                className="omt-btn omt-btn-primary",
+                style={"width": "100%", "padding": "11px"}
             ),
             html.Button(
-                "🗑️ Effacer la carte",
+                "Effacer la carte",
                 id="btn-clear",
                 n_clicks=0,
-                style={
-                    "width": "100%",
-                    "backgroundColor": "#e74c3c",
-                    "color": "white",
-                    "border": "none",
-                    "padding": "10px",
-                    "borderRadius": "6px",
-                    "fontWeight": "bold",
-                    "marginTop": "8px"
-                }
+                className="omt-btn omt-btn-danger",
+                style={"width": "100%", "padding": "11px", "marginTop": "8px"}
             ),
             dcc.Download(id="download-template"),
 
             html.Button(
-                "📥 Télécharger le modèle Excel",
+                "Télécharger le modèle Excel",
                 id="btn-download-template",
                 n_clicks=0,
-                style={
-                    "width": "100%",
-                    "backgroundColor": "#27ae60",
-                    "color": "white",
-                    "border": "none",
-                    "padding": "10px",
-                    "borderRadius": "6px",
-                    "fontWeight": "bold",
-                    "marginTop": "8px"
-                }
+                className="omt-btn omt-btn-success",
+                style={"width": "100%", "padding": "11px", "marginTop": "8px"}
             ),
             
-            html.Hr(style={"marginTop": "25px"}),
+            html.Div([
 
-            html.H5("Import de masse"),
+            html.Div([
+                html.I(className="ti ti-upload", style={"marginRight": "6px", "color": "#C1783F"}),
+                "Import de masse"
+            ], className="omt-card-title"),
 
             dcc.Upload(
                 id="upload-excel",
-                children=html.Div(["📂 Excel (Drag & Drop)"]),
+                children=html.Div(["Glissez un fichier Excel"]),
+                className="omt-upload",
                 style={
                     "width": "100%",
                     "height": "70px",
                     "lineHeight": "70px",
-                    "borderWidth": "2px",
-                    "borderStyle": "dashed",
-                    "borderRadius": "8px",
                     "textAlign": "center",
-                    "backgroundColor": "#F8FAFC"
                 },
                 multiple=False
             ),
@@ -693,8 +675,14 @@ main_layout = html.Div([
                     "fontSize": "14px"
                 }
             ),
-            html.Hr(style={"marginTop": "15px"}),
-            html.H5("Configuration des couleurs", style={"marginTop": "10px"}),
+            ], className="omt-card omt-card-clay", style={"marginTop": "14px"}),
+
+            html.Div([
+
+            html.Div([
+                html.I(className="ti ti-palette", style={"marginRight": "6px", "color": "#1F7A4D"}),
+                "Configuration des couleurs"
+            ], className="omt-card-title"),
             
             # Mode de coloration
             dcc.RadioItems(
@@ -748,25 +736,24 @@ main_layout = html.Div([
                         style={"width": "80px", "fontSize": "11px", "padding": "6px",
                                "borderRadius": "6px", "border": "1px solid #dce8f5"}),
                     html.Button("✓", id="btn-add-province-color", n_clicks=0,
-                        style={"padding": "6px 10px", "backgroundColor": "#2c7fb8", "color": "white",
-                               "border": "none", "borderRadius": "6px", "cursor": "pointer", "marginLeft": "4px"})
+                        className="omt-btn omt-btn-primary",
+                        style={"padding": "6px 10px", "marginLeft": "4px"})
                 ], style={"display": "flex", "gap": "4px", "alignItems": "center", "flexWrap": "wrap"}),
                 html.Div(id="province-color-tags", style={"marginTop": "6px", "display": "flex", "flexWrap": "wrap", "gap": "4px"})
             ], style={"display": "none"}),
 
-            html.Hr(style={"marginTop": "20px", "marginBottom": "15px"}),  
+            ], className="omt-card omt-card-green", style={"marginTop": "14px"}),
 
-            html.Button("🔓 Déconnexion", id="btn-logout", n_clicks=0, style={
-                "backgroundColor": "#FFF0F0", "color": "#c0392b",
-                "border": "1px solid #f5c0c0", "padding": "6px 14px",
-                "borderRadius": "8px", "fontSize": "12px",
-                "cursor": "pointer", "marginLeft": "10px"
+            html.Button([
+                html.I(className="ti ti-logout", style={"marginRight": "6px"}),
+                "Déconnexion"
+            ], id="btn-logout", n_clicks=0, className="omt-btn omt-btn-logout", style={
+                "padding": "8px 14px", "marginTop": "14px", "alignSelf": "flex-start"
             }),
 
-        ], style={
+        ], className="omt-sidebar", style={
             "width": "300px",
             "backgroundColor": "white",
-            "padding": "20px",
             "borderRadius": "10px",
             "boxShadow": "0px 3px 10px rgba(0,0,0,0.08)"
         }),
@@ -783,13 +770,10 @@ main_layout = html.Div([
                     "doubleClick": False, 
                 }
             )
-        ], style={
+        ], className="omt-map-panel", style={
             "flex": "1",
             "marginLeft": "20px",
-            "backgroundColor": "white",
-            "borderRadius": "10px",
             "padding": "10px",
-            "boxShadow": "0px 3px 10px rgba(0,0,0,0.08)"
         })
 
     ], style={
@@ -812,12 +796,9 @@ main_layout = html.Div([
             "fontSize": "12px",
             "color": "#3F82AD"
         })
-    ], style={
+    ], className="omt-footer", style={
         "padding": "12px 25px",
-        "backgroundColor": "#FFFFFF",
-        "borderTop": "0.5px solid #e0e0e0",
         "textAlign": "center",
-        "boxShadow": "0px -2px 6px rgba(0,0,0,0.03)"
     })
 
 ])
@@ -1116,7 +1097,11 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             yref="paper",
             showarrow=False,
             align="center",
-            font=dict(size=16, color="#3F82AD")
+            font=dict(size=16, color="#16232B", family="Manrope, sans-serif"),
+            bgcolor="rgba(255,255,255,0.94)",
+            bordercolor="#E1E8E7",
+            borderwidth=1,
+            borderpad=18,
         )
     
         # Centrage Maroc

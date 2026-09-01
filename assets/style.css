@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap');
+
+:root {
+  --om-navy: #12283B;
+  --om-navy-2: #1B3A52;
+  --om-blue: #2C7FB8;
+  --om-blue-light: #EAF3FB;
+  --om-clay: #C1783F;
+  --om-clay-light: #F6E9DD;
+  --om-green: #1F7A4D;
+  --om-green-light: #E6F3EC;
+  --om-red: #C0392B;
+  --om-red-light: #FBEAEA;
+  --om-bg: #F3F6F5;
+  --om-text: #16232B;
+  --om-text-2: #5C6B73;
+  --om-border: #E1E8E7;
+  --om-radius: 12px;
+}
+
+* {
+  font-family: 'Manrope', sans-serif !important;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--om-bg) !important;
+  margin: 0;
+}
+
+/* ===== HEADER ===== */
+.omt-header {
+  background: var(--om-navy) !important;
+  padding: 16px 28px !important;
+  box-shadow: none !important;
+}
+
+.omt-header-title {
+  color: #FFFFFF !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.omt-header-sub {
+  color: #8FA6B8 !important;
+  font-size: 12px !important;
+  margin: 2px 0 0 0 !important;
+  font-weight: 400 !important;
+}
+
+.omt-stat-pill {
+  background: rgba(255,255,255,0.08) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+  text-align: center;
+}
+
+.omt-stat-value {
+  color: #FFFFFF;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.omt-stat-label {
+  color: #8FA6B8;
+  font-size: 10.5px;
+}
+
+/* ===== SIDEBAR CARDS ===== */
+.omt-sidebar {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 20px 16px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.omt-card {
+  background: #FFFFFF;
+  border: 0.5px solid var(--om-border);
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-radius: 0 10px 10px 0;
+  padding: 14px;
+}
+
+.omt-card-blue { border-left-color: var(--om-blue); }
+.omt-card-clay { border-left-color: var(--om-clay); }
+.omt-card-green { border-left-color: var(--om-green); }
+
+.omt-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--om-text);
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ===== INPUTS ===== */
+.omt-input, .omt-dropdown .Select-control, input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
+  border: 0.5px solid var(--om-border) !important;
+  border-radius: 8px !important;
+  background: var(--om-bg) !important;
+  font-size: 13px !important;
+  padding: 9px 11px !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="number"]:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+  outline: none !important;
+  border-color: var(--om-blue) !important;
+  box-shadow: 0 0 0 3px var(--om-blue-light) !important;
+}
+
+.Select-control {
+  border-radius: 8px !important;
+}
+
+/* ===== BUTTONS ===== */
+.omt-btn {
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.omt-btn:hover { opacity: 0.92; }
+.omt-btn:active { transform: scale(0.98); }
+
+.omt-btn-primary { background: var(--om-blue) !important; color: #fff !important; }
+.omt-btn-danger  { background: var(--om-red) !important; color: #fff !important; }
+.omt-btn-success { background: var(--om-green) !important; color: #fff !important; }
+.omt-btn-logout  {
+  background: var(--om-red-light) !important;
+  color: var(--om-red) !important;
+  border: 0.5px solid #F0C6C0 !important;
+}
+
+/* ===== UPLOAD ZONE ===== */
+.omt-upload {
+  border: 1.5px dashed #D8B99B !important;
+  background: var(--om-clay-light) !important;
+  border-radius: 10px !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.omt-upload:hover {
+  border-color: var(--om-clay) !important;
+}
+
+/* ===== TOGGLE SWITCHES (dcc.Checklist rendered as switches) ===== */
+.omt-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 20px;
+  background: #D5DEDC;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  vertical-align: middle;
+  margin-right: 8px !important;
+  transition: background 0.15s ease;
+}
+
+.omt-toggle input[type="checkbox"]:checked {
+  background: var(--om-blue);
+}
+
+.omt-toggle input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.omt-toggle input[type="checkbox"]:checked::before {
+  transform: translateX(14px);
+}
+
+.omt-toggle label {
+  font-size: 12px;
+  color: var(--om-text-2);
+}
+
+/* ===== MAP PANEL ===== */
+.omt-map-panel {
+  background: #FFFFFF !important;
+  border: 0.5px solid var(--om-border) !important;
+  border-radius: var(--om-radius) !important;
+  box-shadow: none !important;
+}
+
+/* ===== FOOTER ===== */
+.omt-footer {
+  border-top: 0.5px solid var(--om-border) !important;
+  box-shadow: none !important;
+  background: #FFFFFF !important;
+}
+
+/* ===== LOGIN / REGISTER CARD ===== */
+.omt-auth-card {
+  background: #FFFFFF !important;
+  border: 0.5px solid var(--om-border) !important;
+  border-radius: 16px !important;
+}
