@@ -311,6 +311,7 @@ MAP_LABEL_CONFIG = {
 # ================= APP =================
 app = dash.Dash(__name__,
     assets_folder=os.path.join(os.path.dirname(__file__), "assets"),
+    suppress_callback_exceptions=True,
     external_stylesheets=[
         "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css"
     ])
@@ -371,7 +372,7 @@ login_layout = html.Div([
                 "color": "#2c7fb8", "textAlign": "center",
                 "fontSize": "20px", "marginBottom": "4px"
             }),
-            html.P("Tableau de Bord des Régions — OMTPME", style={
+            html.P("Cartographie Régionale et Nationale - OMTPME", style={
                 "color": "#aaa", "fontSize": "11px",
                 "textAlign": "center", "marginBottom": "26px"
             }),
@@ -570,11 +571,11 @@ main_layout = html.Div([
         # ===== TITRES =====
         html.Div([
             html.H2(
-                "Tableau de Bord des Régions",
+                "Cartographie Régionale et Nationale",
                 className="omt-header-title"
             ),
             html.P(
-                "Analyse interactive des indicateurs par province",
+                "Cartes interactives à l'échelle nationale et régionale",
                 className="omt-header-sub"
             )
         ])
@@ -1137,15 +1138,14 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         # ===== Texte central =====
         fig.add_annotation(
             text="""
-    <b>Plateforme des cartes régionaux </b><br><br>
-    Cette application permet de visualiser les parts (%) et les évolutions (%) 
-    par province à l’échelle régionale et national.<br><br>
+    <b>Plateforme des cartes</b><br><br>
+    Cette application permet de visualiser les parts et les évolutions(%) des indicateurs à l’échelle régionale et national.<br><br>
     
     <b>Étapes d’utilisation :</b><br>
     1️⃣ Sélectionner une région cible<br>
     2️⃣ Ajouter les données manuellement<br>
     ou<br>
-    3️⃣ Importer un fichier Excel (region, province, part, evolution)<br>
+    3️⃣ Importer un fichier Excel <br>
     4️⃣ Cliquer sur "Mettre à jour la carte"
             """,
             x=0.5,
@@ -1453,10 +1453,10 @@ def display_page(pathname):
 def login(n_clicks, email, password):
     if not email or not password:
         return "Veuillez remplir tous les champs.", {
-            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
-            "marginTop": "10px", "background": "#FFF0F0",
-            "borderRadius": "6px", "padding": "8px"
-        }, "/"
+            "color": "#2C6FA6", "fontSize": "12px", "textAlign": "center",
+                        "marginTop": "10px", "background": "#EAF3FB",
+                        "borderRadius": "6px", "padding": "8px"
+        }, dash.no_update
 
     success, msg = verify_user(email, password)
     if success:
@@ -1468,7 +1468,7 @@ def login(n_clicks, email, password):
         "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
         "marginTop": "10px", "background": "#FFF0F0",
         "borderRadius": "6px", "padding": "8px"
-    }, "/"
+    }, dash.no_update
 
 
 # ===== INSCRIPTION =====
@@ -1482,12 +1482,12 @@ def login(n_clicks, email, password):
     prevent_initial_call=True
 )
 def register(n_clicks, email, password, password2):
-    if not email or not password or not password2:
+    if not email or not password:
         return "Veuillez remplir tous les champs.", {
-            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
-            "marginTop": "10px", "background": "#FFF0F0",
+            "color": "#2C6FA6", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#EAF3FB",
             "borderRadius": "6px", "padding": "8px"
-        }
+        }, dash.no_update
 
     if not is_email_allowed(email):
         return "Cet email n'est pas autorisé.", {

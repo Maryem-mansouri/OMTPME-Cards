@@ -43,7 +43,7 @@ def verify_user(email, password):
     users = load_users()
     email = email.strip().lower()
     if email not in users:
-        return False, "Email non trouvé. Créez d'abord votre compte."
+        return False, "Email ou mot de passe incorrect."
     if check_password_hash(users[email], password):
         return True, "Connexion réussie."
-    return False, "Mot de passe incorrect."
+    return False, "Email ou mot de passe incorrect."
