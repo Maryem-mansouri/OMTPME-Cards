@@ -1,43 +1,47 @@
 import os
-import smtplib
-from email.mime.text import MIMEText
+import requests
 
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ.get("SMTP_USER")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
-SMTP_SENDER_NAME = os.environ.get("SMTP_SENDER_NAME", "Plateforme OMTPME")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+SMTP_SENDER_NAME = os.environ.get("SMTP_SENDER_NAME", "OMTPME")
 
 
 def send_password_changed_email(to_email):
-    """Envoie un email de confirmation après un changement de mot de passe
-    réussi. Ne bloque jamais l'app même si l'envoi échoue."""
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("SMTP non configuré (SMTP_USER/SMTP_PASSWORD manquants) — email non envoyé.", flush=True)
+    """Envoie un email de confirmation via l'API HTTP de Resend
+    (le SMTP classique est bloqué sur Hugging Face Spaces)."""
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY manquante — email non envoyé.", flush=True)
         return False
 
-    subject = "Votre mot de passe a été modifié"
-    body = (
-        "Bonjour,\n\n"
-        "Nous vous confirmons que le mot de passe de votre compte sur la "
-        "Plateforme des Cartes OMTPME vient d'être modifié avec succès.\n\n"
-        "Si vous n'êtes pas à l'origine de ce changement, contactez "
-        "immédiatement l'administrateur de la plateforme.\n\n"
-        "— OMTPME"
-    )
-
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = subject
-    msg["From"] = f"{SMTP_SENDER_NAME} <{SMTP_USER}>"
-    msg["To"] = to_email
+    payload = {
+        "from": f"{SMTP_SENDER_NAME} <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": "Votre mot de passe a été modifié",
+        "text": (
+            "Bonjour,\n\n"
+            "Nous vous confirmons que le mot de passe de votre compte sur la "
+            "Plateforme des Cartes OMTPME vient d'être modifié avec succès.\n\n"
+            "Si vous n'êtes pas à l'origine de ce changement, contactez "
+            "immédiatement l'administrateur de la plateforme.\n\n"
+            "— OMTPME"
+        ),
+    }
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_USER, [to_email], msg.as_string())
-        print(f"Email de confirmation envoyé avec succès à {to_email}", flush=True)
-        return True
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=10,
+        )
+        if response.status_code in (200, 201):
+            print(f"Email de confirmation envoyé avec succès à {to_email}", flush=True)
+            return True
+        else:
+            print(f"Erreur envoi email: {response.status_code} - {response.text}", flush=True)
+            return False
     except Exception as e:
         print(f"Erreur envoi email: {e}", flush=True)
         return False
