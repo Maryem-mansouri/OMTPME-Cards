@@ -1669,9 +1669,9 @@ def reset_password_callback(n_clicks, email, password, password2):
 
     success, msg = reset_password(email, password)
     if success:
-        print(f"DEBUG: tentative d'envoi d'email de confirmation à {email}")
+        print(f"DEBUG: tentative d'envoi d'email de confirmation à {email}", flush=True)
         email_sent = send_password_changed_email(email)
-        print(f"DEBUG: résultat de l'envoi = {email_sent}")
+        print(f"DEBUG: résultat de l'envoi = {email_sent}", flush=True)
         return "✅ " + msg + " Un email de confirmation vous a été envoyé. Vous pouvez maintenant vous connecter.", {
             "color": "#1e8449", "fontSize": "12px", "textAlign": "center",
             "marginTop": "10px", "background": "#EDFBF3",
