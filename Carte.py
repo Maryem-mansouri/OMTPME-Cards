@@ -9,7 +9,8 @@ import io
 import base64
 import os
 from flask import session
-from auth import is_email_allowed, register_user, verify_user
+from auth import is_email_allowed, register_user, verify_user, reset_password
+from mailer import send_password_changed_email
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 
@@ -115,7 +116,7 @@ MAP_LABEL_CONFIG = {
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
             "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Régions du Sud":            {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.3}},
+            "Régions du Sud":            {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
         }
     },
 
@@ -427,6 +428,12 @@ login_layout = html.Div([
                     "fontWeight": "600", "textDecoration": "none"
                 })
             ], style={"textAlign": "center", "marginTop": "16px"}),
+                html.Div([
+                html.A("Mot de passe oublié ?", href="/reset-password", style={
+                    "fontSize": "12px", "color": "#2c7fb8",
+                    "fontWeight": "600", "textDecoration": "none"
+                })
+            ], style={"textAlign": "center", "marginTop": "8px"}),
 
             #html.P("Réalisé par Maryem El Mansouri — © 2025", style={
             #    "textAlign": "center", "fontSize": "10px",
@@ -542,6 +549,101 @@ register_layout = html.Div([
             radial-gradient(ellipse at 80% 20%, rgba(39,174,96,0.10) 0%, transparent 50%),
             radial-gradient(ellipse at 60% 80%, rgba(44,127,184,0.10) 0%, transparent 50%),
             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect fill="%23EDF6F7"/><path d="M150,300 Q200,200 280,220 Q350,240 380,180 Q420,120 500,150 Q560,170 580,130 Q620,80 680,100" stroke="%232c7fb8" stroke-width="2" fill="none" opacity="0.15"/><path d="M100,350 Q180,320 220,280 Q270,240 320,260 Q370,280 420,240 Q470,200 540,220 Q600,240 650,200 Q700,160 750,180" stroke="%2327ae60" stroke-width="1.5" fill="none" opacity="0.12"/><circle cx="200" cy="250" r="80" fill="%232c7fb8" opacity="0.04"/><circle cx="600" cy="180" r="60" fill="%232c7fb8" opacity="0.05"/><circle cx="400" cy="400" r="100" fill="%2327ae60" opacity="0.04"/><path d="M50,400 L100,380 L150,390 L200,370 L250,380 L300,360 L350,370 L400,350 L450,360 L500,340 L550,350 L600,330 L650,340 L700,320 L750,330 L750,420 L50,420 Z" fill="%232c7fb8" opacity="0.06"/><path d="M50,430 L100,415 L150,425 L200,410 L250,420 L300,405 L350,415 L400,400 L450,408 L500,395 L550,405 L600,390 L650,400 L700,385 L750,395 L750,480 L50,480 Z" fill="%232c7fb8" opacity="0.04"/></svg>')
+        """,
+        "backgroundSize": "cover",
+        "backgroundPosition": "center",
+        "position": "relative"
+    })
+])
+# ===== LAYOUT RÉINITIALISATION MOT DE PASSE =====
+reset_layout = html.Div([
+    html.Div([
+        html.Div([
+            html.Div([
+                html.Img(src="/assets/Logo.png", style={"height": "55px", "marginBottom": "16px"})
+            ], style={"textAlign": "center"}),
+
+            html.H2("Réinitialiser le mot de passe", style={
+                "color": "#2c7fb8", "textAlign": "center",
+                "fontSize": "20px", "marginBottom": "4px"
+            }),
+            html.P("Entrez votre email autorisé et votre nouveau mot de passe", style={
+                "color": "#aaa", "fontSize": "11px",
+                "textAlign": "center", "marginBottom": "26px"
+            }),
+
+            html.Label("Email autorisé", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="reset-email", type="email", placeholder="votre@email.ma",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "12px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Label("Nouveau mot de passe", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="reset-password-new", type="password", placeholder="Minimum 6 caractères",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "12px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Label("Confirmer le nouveau mot de passe", style={
+                "fontSize": "10px", "fontWeight": "600",
+                "color": "#999", "textTransform": "uppercase",
+                "letterSpacing": "0.07em", "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(id="reset-password-confirm", type="password", placeholder="Répéter le mot de passe",
+                style={
+                    "width": "100%", "padding": "10px 12px",
+                    "marginBottom": "16px", "border": "1px solid #dce8f5",
+                    "borderRadius": "8px", "fontSize": "13px",
+                    "background": "#f8fbfe"
+                }),
+
+            html.Button("Réinitialiser le mot de passe", id="btn-reset", n_clicks=0, style={
+                "width": "100%", "padding": "11px",
+                "backgroundColor": "#2c7fb8", "color": "white",
+                "border": "none", "borderRadius": "8px",
+                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+            }),
+
+            html.Div(id="reset-msg", style={
+                "fontSize": "12px", "textAlign": "center",
+                "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
+            }),
+
+            html.Div([
+                html.Span("Retour à la ", style={"fontSize": "12px", "color": "#aaa"}),
+                html.A("connexion", href="/", style={
+                    "fontSize": "12px", "color": "#2c7fb8",
+                    "fontWeight": "600", "textDecoration": "none"
+                })
+            ], style={"textAlign": "center", "marginTop": "16px"}),
+
+        ], style={
+            "background": "white", "padding": "38px 34px",
+            "borderRadius": "16px", "width": "340px",
+            "border": "0.5px solid #dce8f5"
+        }, className="omt-auth-card")
+    ], style={
+        "display": "flex", "alignItems": "center",
+        "justifyContent": "center", "minHeight": "100vh",
+        "background": """
+            radial-gradient(ellipse at 20% 50%, rgba(44,127,184,0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 20%, rgba(39,174,96,0.10) 0%, transparent 50%),
+            radial-gradient(ellipse at 60% 80%, rgba(44,127,184,0.10) 0%, transparent 50%),
+            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect fill="%23EDF6F7"/></svg>')
         """,
         "backgroundSize": "cover",
         "backgroundPosition": "center",
@@ -1435,6 +1537,8 @@ def get_province_color(part, color_mode, single_color,
 def display_page(pathname):
     if pathname == "/register":
         return register_layout
+    if pathname == "/reset-password":
+        return reset_layout
     if session.get("authenticated"):
         return main_layout
     return login_layout
@@ -1524,7 +1628,59 @@ def register(n_clicks, email, password, password2):
         "borderRadius": "6px", "padding": "8px"
     }
 
+# ===== RÉINITIALISATION MOT DE PASSE =====
+@app.callback(
+    Output("reset-msg", "children"),
+    Output("reset-msg", "style"),
+    Input("btn-reset", "n_clicks"),
+    State("reset-email", "value"),
+    State("reset-password-new", "value"),
+    State("reset-password-confirm", "value"),
+    prevent_initial_call=True
+)
+def reset_password_callback(n_clicks, email, password, password2):
+    if not email or not password or not password2:
+        return "Veuillez remplir tous les champs.", {
+            "color": "#2C6FA6", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#EAF3FB",
+            "borderRadius": "6px", "padding": "8px"
+        }
 
+    if not is_email_allowed(email):
+        return "Cet email n'est pas autorisé.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    if len(password) < 6:
+        return "Le mot de passe doit contenir au moins 6 caractères.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    if password != password2:
+        return "Les mots de passe ne correspondent pas.", {
+            "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#FFF0F0",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    success, msg = reset_password(email, password)
+    if success:
+        send_password_changed_email(email)
+        return "✅ " + msg + " Un email de confirmation vous a été envoyé. Vous pouvez maintenant vous connecter.", {
+            "color": "#1e8449", "fontSize": "12px", "textAlign": "center",
+            "marginTop": "10px", "background": "#EDFBF3",
+            "borderRadius": "6px", "padding": "8px"
+        }
+
+    return msg, {
+        "color": "#c0392b", "fontSize": "12px", "textAlign": "center",
+        "marginTop": "10px", "background": "#FFF0F0",
+        "borderRadius": "6px", "padding": "8px"
+    }
 # ===== DÉCONNEXION =====
 @app.callback(
     Output("url", "pathname", allow_duplicate=True),

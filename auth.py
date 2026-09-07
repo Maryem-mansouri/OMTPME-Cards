@@ -47,3 +47,12 @@ def verify_user(email, password):
     if check_password_hash(users[email], password):
         return True, "Connexion réussie."
     return False, "Email ou mot de passe incorrect."
+
+def reset_password(email, new_password):
+    users = load_users()
+    email = email.strip().lower()
+    if email not in users:
+        return False, "Aucun compte trouvé pour cet email. Créez d'abord votre compte."
+    users[email] = generate_password_hash(new_password)
+    save_users(users)
+    return True, "Mot de passe réinitialisé avec succès."
