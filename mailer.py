@@ -36,6 +36,7 @@ def send_password_changed_email(to_email):
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(SMTP_USER, [to_email], msg.as_string())
+        print(f"Email de confirmation envoyé avec succès à {to_email}")
         return True
     except Exception as e:
         print(f"Erreur envoi email: {e}")
