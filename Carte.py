@@ -10,7 +10,6 @@ import base64
 import os
 from flask import session
 from auth import is_email_allowed, register_user, verify_user, reset_password
-from mailer import send_password_changed_email
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 
@@ -55,6 +54,8 @@ REGIONS_GROUPES = {
         "Guelmim-Oued Noun"
     ]
 }
+NATIONAL_REGIONS = ["Maroc", MAROC_SUD_COMBINE]
+REGIONAL_REGIONS = [r for r in regions if r not in NATIONAL_REGIONS]
 
 # Mapping pour récupérer les noms shape1 des régions
 REGIONS_LEVEL1 = [f["properties"]["shape1"] for f in geo_regions["features"]]
@@ -78,6 +79,13 @@ def build_combined_south_geojson(geo_regions_data, south_names):
 
 geo_regions_sud_combine = build_combined_south_geojson(geo_regions, REGIONS_GROUPES["Régions du Sud"])
 REGIONS_LEVEL1_COMBINE = [f["properties"]["shape1"] for f in geo_regions_sud_combine["features"]]
+
+COLOR_PALETTE = [
+    ("#deebf7", "Très clair"), ("#c6dbef", "Clair"), ("#9ecae1", "Moyen clair"),
+    ("#6baed6", "Moyen"), ("#4292c6", "Foncé"), ("#2171b5", "Très foncé"), ("#084594", "Profond"),
+    ("#d4537e", "Rose"), ("#e24b4a", "Rouge"), ("#639922", "Vert"),
+    ("#7f77dd", "Violet"), ("#ef9f27", "Ambre"),
+]
 
 # ================= CONFIG LABEL =================
 MAP_LABEL_CONFIG = {
@@ -716,9 +724,20 @@ main_layout = html.Div([
                 html.I(className="ti ti-filter", style={"marginRight": "6px", "color": "#2C7FB8"}),
                 "Région cible"
             ], className="omt-card-title"),
+
+            dcc.RadioItems(
+                id="analysis-mode",
+                options=[
+                    {"label": " Analyse nationale", "value": "national"},
+                    {"label": " Analyse régionale", "value": "regional"},
+                ],
+                value="national",
+                style={"fontSize": "12px", "marginBottom": "10px", "display": "flex", "gap": "16px"}
+            ),
+
             dcc.Dropdown(
                 id="filter-region",
-                options=[{"label": r, "value": r} for r in regions],
+                options=[{"label": r, "value": r} for r in NATIONAL_REGIONS],
                 placeholder="Sélectionner une région",
             ),
             ], className="omt-card omt-card-blue"),
@@ -874,16 +893,35 @@ main_layout = html.Div([
             # Config par province
             html.Div(id="color-province-config", children=[
                 html.P("Couleur par province / région :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
-                html.Div([
+                                html.Div([
                     dcc.Dropdown(id="color-province-select", placeholder="Province / Région ...",
                         style={"flex": "1", "fontSize": "11px", "marginBottom": "6px"}),
-                    dcc.Input(id="color-province-value", type="text", placeholder="#2c7fb8",
-                        style={"width": "80px", "fontSize": "11px", "padding": "6px",
-                               "borderRadius": "6px", "border": "1px solid #dce8f5"}),
+                    html.Div(id="color-province-preview", style={
+                        "width": "30px", "height": "30px", "borderRadius": "6px",
+                        "border": "1px solid #dce8f5", "backgroundColor": "#2c7fb8",
+                        "flexShrink": "0"
+                    }),
+                    dcc.Input(id="color-province-value", type="text", value="#2c7fb8",
+                        style={"display": "none"}),
                     html.Button("✓", id="btn-add-province-color", n_clicks=0,
                         className="omt-btn omt-btn-primary",
                         style={"padding": "6px 10px", "marginLeft": "4px"})
                 ], style={"display": "flex", "gap": "4px", "alignItems": "center", "flexWrap": "wrap"}),
+
+                html.Div([
+                    html.Button(
+                        "",
+                        id={"type": "palette-swatch", "color": hex_code},
+                        title=f"{label} ({hex_code})",
+                        n_clicks=0,
+                        style={
+                            "width": "22px", "height": "22px", "borderRadius": "4px",
+                            "backgroundColor": hex_code, "border": "1.5px solid #fff",
+                            "boxShadow": "0 0 0 1px #dce8f5",
+                            "cursor": "pointer", "padding": "0"
+                        }
+                    ) for hex_code, label in COLOR_PALETTE
+                ], style={"display": "flex", "gap": "5px", "flexWrap": "wrap", "marginTop": "6px"}),
                 html.Div(id="province-color-tags", style={"marginTop": "6px", "display": "flex", "flexWrap": "wrap", "gap": "4px"})
             ], style={"display": "none"}),
 
@@ -956,6 +994,18 @@ app.layout = html.Div([
     html.Div(id="page-content")
 ])
 
+@app.callback(
+    Output("filter-region", "options"),
+    Output("filter-region", "value"),
+    Input("analysis-mode", "value")
+)
+def update_region_options(mode):
+    if mode == "national":
+        opts = [{"label": r, "value": r} for r in NATIONAL_REGIONS]
+    else:
+        opts = [{"label": r, "value": r} for r in REGIONAL_REGIONS]
+    return opts, None
+
 # ================= UPDATE PROVINCES =================
 @app.callback(
     Output("color-class-config", "style"),
@@ -992,6 +1042,26 @@ def update_color_province_options(region_name):
     return [{"label": f["properties"]["shape2"], "value": f["properties"]["shape2"]}
             for f in provinces]
 
+
+@app.callback(
+    Output("color-province-value", "value"),
+    Output("color-province-preview", "style"),
+    Input({"type": "palette-swatch", "color": dash.ALL}, "n_clicks"),
+    prevent_initial_call=True
+)
+def pick_palette_color(n_clicks_list):
+    ctx = dash.callback_context
+    if not ctx.triggered or not any(n_clicks_list):
+        return dash.no_update, dash.no_update
+    color = ctx.triggered_id["color"]
+    preview_style = {
+        "width": "30px", "height": "30px", "borderRadius": "6px",
+        "border": "1px solid #dce8f5", "backgroundColor": color,
+        "flexShrink": "0"
+    }
+    return color, preview_style
+
+
 @app.callback(
     Output("province-colors-store", "data"),
     Output("province-color-tags", "children"),
@@ -1003,6 +1073,8 @@ def update_color_province_options(region_name):
     State("filter-region", "value"),
     prevent_initial_call=True
 )
+
+
 def save_province_color(n_add, n_clear, province, color, current_colors, region_name):
     ctx = dash.callback_context
     triggered = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
@@ -1669,10 +1741,7 @@ def reset_password_callback(n_clicks, email, password, password2):
 
     success, msg = reset_password(email, password)
     if success:
-        print(f"DEBUG: tentative d'envoi d'email de confirmation à {email}", flush=True)
-        email_sent = send_password_changed_email(email)
-        print(f"DEBUG: résultat de l'envoi = {email_sent}", flush=True)
-        return "✅ " + msg + " Un email de confirmation vous a été envoyé. Vous pouvez maintenant vous connecter.", {
+        return "✅ " + msg + " Vous pouvez maintenant vous connecter.", {
             "color": "#1e8449", "fontSize": "12px", "textAlign": "center",
             "marginTop": "10px", "background": "#EDFBF3",
             "borderRadius": "6px", "padding": "8px"
