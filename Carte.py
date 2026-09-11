@@ -414,19 +414,25 @@ login_layout = html.Div([
                     "background": "#f8fbfe", "outline": "none"
                 }),
 
-            html.Button("Se connecter →", id="btn-login", n_clicks=0, style={
-                "width": "100%", "padding": "11px",
-                "backgroundColor": "#2c7fb8", "color": "white",
-                "border": "none", "borderRadius": "8px",
-                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
-            }),
+                        dcc.Loading(
+                type="circle",
+                color="#2c7fb8",
+                children=[
+                    html.Button("Se connecter →", id="btn-login", n_clicks=0, style={
+                        "width": "100%", "padding": "11px",
+                        "backgroundColor": "#2c7fb8", "color": "white",
+                        "border": "none", "borderRadius": "8px",
+                        "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+                    }),
 
-            html.Div(id="login-error", style={
-                "color": "#c0392b", "fontSize": "12px",
-                "textAlign": "center", "marginTop": "10px",
-                "background": "#FFF0F0", "borderRadius": "6px",
-                "padding": "0px"
-            }),
+                    html.Div(id="login-error", style={
+                        "color": "#c0392b", "fontSize": "12px",
+                        "textAlign": "center", "marginTop": "10px",
+                        "background": "#FFF0F0", "borderRadius": "6px",
+                        "padding": "0px"
+                    }),
+                ]
+            ),
 
             # Lien vers inscription
             html.Div([
@@ -524,17 +530,23 @@ register_layout = html.Div([
                     "background": "#f8fbfe"
                 }),
 
-            html.Button("Créer mon compte", id="btn-register", n_clicks=0, style={
-                "width": "100%", "padding": "11px",
-                "backgroundColor": "#27ae60", "color": "white",
-                "border": "none", "borderRadius": "8px",
-                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
-            }),
+                        dcc.Loading(
+                type="circle",
+                color="#27ae60",
+                children=[
+                    html.Button("Créer mon compte", id="btn-register", n_clicks=0, style={
+                        "width": "100%", "padding": "11px",
+                        "backgroundColor": "#27ae60", "color": "white",
+                        "border": "none", "borderRadius": "8px",
+                        "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+                    }),
 
-            html.Div(id="register-msg", style={
-                "fontSize": "12px", "textAlign": "center",
-                "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
-            }),
+                    html.Div(id="register-msg", style={
+                        "fontSize": "12px", "textAlign": "center",
+                        "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
+                    }),
+                ]
+            ),
 
             html.Div([
                 html.Span("Déjà un compte ? ", style={"fontSize": "12px", "color": "#aaa"}),
@@ -619,17 +631,23 @@ reset_layout = html.Div([
                     "background": "#f8fbfe"
                 }),
 
-            html.Button("Réinitialiser le mot de passe", id="btn-reset", n_clicks=0, style={
-                "width": "100%", "padding": "11px",
-                "backgroundColor": "#2c7fb8", "color": "white",
-                "border": "none", "borderRadius": "8px",
-                "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
-            }),
+                        dcc.Loading(
+                type="circle",
+                color="#2c7fb8",
+                children=[
+                    html.Button("Réinitialiser le mot de passe", id="btn-reset", n_clicks=0, style={
+                        "width": "100%", "padding": "11px",
+                        "backgroundColor": "#2c7fb8", "color": "white",
+                        "border": "none", "borderRadius": "8px",
+                        "fontWeight": "600", "fontSize": "13px", "cursor": "pointer"
+                    }),
 
-            html.Div(id="reset-msg", style={
-                "fontSize": "12px", "textAlign": "center",
-                "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
-            }),
+                    html.Div(id="reset-msg", style={
+                        "fontSize": "12px", "textAlign": "center",
+                        "marginTop": "10px", "borderRadius": "6px", "padding": "0px"
+                    }),
+                ]
+            ),
 
             html.Div([
                 html.Span("Retour à la ", style={"fontSize": "12px", "color": "#aaa"}),
@@ -663,6 +681,18 @@ main_layout = html.Div([
     # ===== SESSION STORE =====
     dcc.Store(id="stored-values", storage_type="session", data={}),
     dcc.Store(id="excel-contents-store", storage_type="session", data=None),
+    dcc.Store(id="toast-trigger", data=None),
+
+    dcc.ConfirmDialog(
+        id="confirm-clear",
+        message="Es-tu sûr de vouloir effacer toutes les données de cette région ? Cette action est irréversible.",
+    ),
+
+    html.Div(id="toast-container", style={
+        "position": "fixed", "top": "20px", "right": "20px", "zIndex": "9999",
+        "display": "flex", "flexDirection": "column", "gap": "8px"
+    }),
+    dcc.Interval(id="toast-interval", interval=3000, n_intervals=0, disabled=True),
 
     # ===== HEADER =====
     html.Div([
@@ -943,15 +973,20 @@ main_layout = html.Div([
 
         # ===== RIGHT PANEL (MAP) =====
         html.Div([
-            dcc.Graph(
-                id="graph-region",
-                style={"height": "100%","minHeight": "85vh"},
-                config={
-                    "displayModeBar": True,
-                    "toImageButtonOptions": {"format": "png", "scale": 6},
-                    "scrollZoom": False,    # ← désactive zoom souris
-                    "doubleClick": False, 
-                }
+            dcc.Loading(
+                id="loading-graph",
+                type="circle",
+                color="#2C7FB8",
+                children=dcc.Graph(
+                    id="graph-region",
+                    style={"height": "100%","minHeight": "85vh"},
+                    config={
+                        "displayModeBar": True,
+                        "toImageButtonOptions": {"format": "png", "scale": 6},
+                        "scrollZoom": False,    # ← désactive zoom souris
+                        "doubleClick": False, 
+                    }
+                )
             )
         ], className="omt-map-panel", style={
             "flex": "1",
@@ -1066,7 +1101,7 @@ def pick_palette_color(n_clicks_list):
     Output("province-colors-store", "data"),
     Output("province-color-tags", "children"),
     Input("btn-add-province-color", "n_clicks"),
-    Input("btn-clear", "n_clicks"),
+    Input("confirm-clear", "submit_n_clicks"),
     State("color-province-select", "value"),
     State("color-province-value", "value"),
     State("province-colors-store", "data"),
@@ -1081,7 +1116,7 @@ def save_province_color(n_add, n_clear, province, color, current_colors, region_
     
     current_colors = current_colors or {}
     
-    if "btn-clear" in triggered and region_name:
+    if "confirm-clear" in triggered and region_name:
         # Effacer les couleurs de la région courante
         current_colors = {k: v for k, v in current_colors.items() 
                          if k not in ([region_name] if region_name == "Maroc" else [])}
@@ -1210,7 +1245,6 @@ def download_template(n_clicks, region_name):
         filename=filename,
         base64=True
     )
-
 # ================= HANDLE EXCEL UPLOAD =================
 @app.callback(
     Output("excel-contents-store", "data"),
@@ -1220,11 +1254,23 @@ def download_template(n_clicks, region_name):
 def store_excel(contents):
     return contents
 
+
+@app.callback(
+    Output("confirm-clear", "displayed"),
+    Input("btn-clear", "n_clicks"),
+    prevent_initial_call=True
+)
+def show_confirm_clear(n_clicks):
+    return True
+
+
 @app.callback(
     Output("graph-region", "figure"),
     Output("stored-values", "data"),
+    Output("upload-message", "children"),
+    Output("toast-trigger", "data"),
     Input("btn-update", "n_clicks"),
-    Input("btn-clear", "n_clicks"), 
+    Input("confirm-clear", "submit_n_clicks"),
     Input("upload-excel", "contents"),
     State("excel-contents-store", "data"),
     State("stored-values", "data"),
@@ -1241,14 +1287,15 @@ def store_excel(contents):
     State("class3-min", "value"), State("class3-max", "value"), State("class3-color", "value"),
     State("province-colors-store", "data"),
 )
-
-
-def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values, region_name,
-                  selected_province, val, evo,invert_colors, show_percent,color_mode, single_color,
+def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_values, region_name,
+                  selected_province, val, evo, invert_colors, show_percent, color_mode, single_color,
                   c1min, c1max, c1color,
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
                   province_colors):
+    upload_msg = dash.no_update
+    toast_data = dash.no_update
+
     # Initialiser si vide
     if not stored_values:
         stored_values = {region: {} for region in regions}
@@ -1261,21 +1308,23 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
     ctx = dash.callback_context
     triggered = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
 
-    if "btn-clear" in triggered and region_name:
+    if "confirm-clear" in triggered and region_name:
         stored_values[region_name] = {}
+        toast_data = {"text": "🗑️ Données effacées pour cette région.", "type": "success"}
+
+    if "btn-update" in triggered:
+        toast_data = {"text": "✅ Carte mise à jour.", "type": "success"}
 
     # ===== Remplissage depuis Excel =====
-    
     if "upload-excel" in triggered and excel_trigger:
         try:
             df, key_col = parse_excel(excel_trigger)
             for _, row in df.iterrows():
                 r = str(row["region"]).strip()
-                
-                # Convertir NaN en None
+
                 part_val = None if pd.isna(row["part"]) else row["part"]
-                evo_val  = None if pd.isna(row["evolution"]) else row["evolution"]
-                
+                evo_val = None if pd.isna(row["evolution"]) else row["evolution"]
+
                 if key_col == "province":
                     p = str(row["province"]).strip()
                     if r in stored_values:
@@ -1291,14 +1340,18 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                         "part": part_val,
                         "evolution": evo_val
                     }
+            upload_msg = f"✅ {len(df)} ligne(s) importée(s) avec succès."
+            toast_data = {"text": upload_msg, "type": "success"}
         except Exception as e:
             print(f"Erreur: {e}")
+            upload_msg = f"❌ Erreur d'import : {e}"
+            toast_data = {"text": "❌ Échec de l'import Excel.", "type": "error"}
 
     if not region_name:
 
         # ===== Carte complète Maroc =====
         fig = go.Figure()
-    
+
         fig.add_trace(go.Choroplethmapbox(
             geojson=geo_provinces,
             locations=[f["properties"]["shape2"] for f in geo_provinces["features"]],
@@ -1308,13 +1361,12 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             showscale=False,
             marker_line_color="white"
         ))
-    
-        # ===== Texte central =====
+
         fig.add_annotation(
             text="""
     <b>Plateforme des cartes</b><br><br>
     Cette application permet de visualiser les parts et les évolutions(%) des indicateurs à l’échelle régionale et national.<br><br>
-    
+
     <b>Étapes d’utilisation :</b><br>
     1️⃣ Sélectionner une région cible<br>
     2️⃣ Ajouter les données manuellement<br>
@@ -1334,10 +1386,9 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             borderwidth=1,
             borderpad=18,
         )
-    
-        # Centrage Maroc
+
         centers = [province_center(f) for f in geo_provinces["features"]]
-    
+
         fig.update_layout(
             mapbox=dict(
                 style="white-bg",
@@ -1351,9 +1402,8 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             height=950,
             uirevision="Maroc",
         )
-    
-        return fig, stored_values
 
+        return fig, stored_values, dash.no_update, dash.no_update
 
     # ===== Ajout manuel =====
     if selected_province and (val is not None or evo is not None):
@@ -1363,7 +1413,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             "evolution": evo if evo is not None else existing.get("evolution")
         }
 
-# ===== Provinces région ou Régions Maroc =====
+    # ===== Provinces région ou Régions Maroc =====
     if region_name == "Maroc":
         features = geo_regions["features"]
         geojson_data = geo_regions
@@ -1389,7 +1439,6 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
     fig = go.Figure()
 
-    # Calculer les couleurs par feature
     colors = []
     for f in features:
         name = f["properties"][name_key]
@@ -1404,7 +1453,6 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         )
         colors.append(c)
 
-    # Une trace par province pour couleur individuelle
     for i, f in enumerate(features):
         name = f["properties"][name_key]
         fig.add_trace(go.Choroplethmapbox(
@@ -1425,21 +1473,21 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
     lat_values = [c[1] for c in centers]
     auto_length = (max(lon_values) - min(lon_values)) * 0.25
 
-    region_zoom  = MAP_LABEL_CONFIG.get(region_name, {}).get("zoom", 7.5)
-    text_size    = MAP_LABEL_CONFIG.get(region_name, {}).get("text_size") or max(15, int(region_zoom * 2.5))
-    evo_size     = MAP_LABEL_CONFIG.get(region_name, {}).get("evo_size")  or max(10, int(region_zoom * 2.2))
+    region_zoom = MAP_LABEL_CONFIG.get(region_name, {}).get("zoom", 7.5)
+    text_size = MAP_LABEL_CONFIG.get(region_name, {}).get("text_size") or max(15, int(region_zoom * 2.5))
+    evo_size = MAP_LABEL_CONFIG.get(region_name, {}).get("evo_size") or max(10, int(region_zoom * 2.2))
     diamond_size = max(10, int(region_zoom * 1.8))
     if region_name in ("Maroc", MAROC_SUD_COMBINE):
         lat_offset_text = 0.22
-        lat_offset_evo  = 0.28
+        lat_offset_evo = 0.28
     else:
         lat_offset_text = 0.04 * (7.5 / region_zoom)
-        lat_offset_evo  = 0.05 * (7.5 / region_zoom)
+        lat_offset_evo = 0.05 * (7.5 / region_zoom)
 
     for feature in features:
-        name = feature["properties"][name_key]   # ← utilise name_key dynamique
+        name = feature["properties"][name_key]
 
-        region_cfg   = MAP_LABEL_CONFIG.get(region_name, {})
+        region_cfg = MAP_LABEL_CONFIG.get(region_name, {})
         province_cfg = region_cfg.get("provinces", {}).get(name, {})
 
         lon_base, lat_base = province_center(feature)
@@ -1449,17 +1497,12 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
 
         data = stored_values[region_name].get(name, {})
         part = data.get("part")
-        evo  = data.get("evolution")
+        evo_val_disp = data.get("evolution")
 
-        if part is None and evo is None:
+        if part is None and evo_val_disp is None:
             continue
 
-        # ... reste de la boucle labels inchangé (ligne, point, texte, évolution)
-
         auto_side = 1 if lon >= region_mid_lon else -1
-
-        region_cfg = MAP_LABEL_CONFIG.get(region_name, {})
-        province_cfg = region_cfg.get("provinces", {}).get(name, {})
 
         line_length = (
             province_cfg.get("length")
@@ -1473,30 +1516,26 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         gap = 0.17
 
         line_end_lon = lon + side * (line_length - gap)
-        label_lon    = lon + side * line_length
-        label_lat    = lat
-        
-        # ligne
+        label_lon = lon + side * line_length
+        label_lat = lat
+
         fig.add_trace(go.Scattermapbox(
             lon=[lon, line_end_lon], lat=[label_lat, label_lat],
             mode="lines", line=dict(color="black", width=2),
             showlegend=False
         ))
 
-        # ===== Point d'ancrage =====
         fig.add_trace(go.Scattermapbox(
             lon=[lon], lat=[lat],
             mode="markers", marker=dict(size=6, color="black"),
             showlegend=False
         ))
 
-        # ===== Nom + Part % =====
-        # Nom + Part %
         if region_name in ("Maroc", MAROC_SUD_COMBINE):
             label_text = name.replace("-", " ").replace(" ", "\u00A0")
         else:
             label_text = name.replace(" ", "\u00A0")
-            
+
         if part is not None and str(part).strip() != "":
             part_float = float(part)
             part_rounded = round(part_float, 1)
@@ -1506,18 +1545,12 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
             else:
                 label_text += f"\u00A0{part_display}"
 
-
-        # ===== Nom + Part % =====
         if region_name in ("Maroc", MAROC_SUD_COMBINE):
-            # Trace invisible pour positionner, puis trace gras séparé
             fig.add_trace(go.Scattermapbox(
                 lon=[label_lon], lat=[label_lat + lat_offset_text],
                 mode="text",
                 text=[label_text],
-                textfont=dict(
-                    size=text_size,
-                    color="black",
-                    weight="bold"),
+                textfont=dict(size=text_size, color="black", weight="bold"),
                 showlegend=False
             ))
         else:
@@ -1529,14 +1562,13 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                 showlegend=False
             ))
 
-        # ===== Évolution (seulement si renseignée) =====
-        if evo is not None and str(evo).strip() != "":
-            evo_float = float(evo)
-            sign  = "+" if evo_float >= 0 else "-"
+        if evo_val_disp is not None and str(evo_val_disp).strip() != "":
+            evo_float = float(evo_val_disp)
+            sign = "+" if evo_float >= 0 else "-"
             if invert_colors and "invert" in invert_colors:
                 color = "#d7191c" if evo_float >= 0 else "#1a9641"
             else:
-                 color = "#1a9641" if evo_float >= 0 else "#d7191c"
+                color = "#1a9641" if evo_float >= 0 else "#d7191c"
             evo_abs_float = abs(evo_float)
             evo_abs_rounded = round(evo_abs_float, 1)
             evo_abs = int(evo_abs_rounded) if evo_abs_rounded == int(evo_abs_rounded) else str(evo_abs_rounded).replace(".", ",")
@@ -1557,6 +1589,7 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
                 showlegend=False,
                 hoverinfo="skip"
             ))
+
     fig.update_layout(
         mapbox=dict(
             style="white-bg",
@@ -1568,7 +1601,40 @@ def update_figure(n_clicks, n_clear,excel_trigger, excel_contents,stored_values,
         height=950
     )
 
-    return fig, stored_values
+    return fig, stored_values, upload_msg, toast_data
+
+
+@app.callback(
+    Output("toast-container", "children"),
+    Output("toast-interval", "disabled"),
+    Output("toast-interval", "n_intervals"),
+    Input("toast-trigger", "data"),
+    prevent_initial_call=True
+)
+def show_toast(toast_data):
+    if not toast_data:
+        return dash.no_update, dash.no_update, dash.no_update
+    text = toast_data.get("text", "")
+    kind = toast_data.get("type", "success")
+    bg = "#EDFBF3" if kind == "success" else "#FFF0F0"
+    color = "#1e8449" if kind == "success" else "#c0392b"
+    border = "#b7ebc6" if kind == "success" else "#f5c0c0"
+    toast = html.Div(text, style={
+        "background": bg, "color": color, "border": f"1px solid {border}",
+        "borderRadius": "8px", "padding": "10px 16px", "fontSize": "13px",
+        "boxShadow": "0 4px 12px rgba(0,0,0,0.08)", "minWidth": "220px"
+    })
+    return [toast], False, 0
+
+
+@app.callback(
+    Output("toast-container", "children", allow_duplicate=True),
+    Output("toast-interval", "disabled", allow_duplicate=True),
+    Input("toast-interval", "n_intervals"),
+    prevent_initial_call=True
+)
+def hide_toast(n):
+    return [], True
 
 def get_province_color(part, color_mode, single_color,
                         c1min, c1max, c1color,
