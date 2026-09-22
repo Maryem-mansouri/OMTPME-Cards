@@ -230,3 +230,7 @@ input:-webkit-autofill:active {
   border: 0.5px solid var(--om-border) !important;
   border-radius: 16px !important;
 }
+#label-overlay-container div {
+  font-family: 'Lato', Arial, Helvetica, sans-serif !important;
+  
+}

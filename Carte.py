@@ -92,21 +92,21 @@ MAP_LABEL_CONFIG = {
     "Maroc": {
         "default_length": 0.5,
         "zoom": 3.8,
-        "text_size": 18,
+        "text_size": 16,
         "evo_size": 17,
         "provinces": {
-            "Tanger-Tétouan-Al Hoceima": {"length": 3.5, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
+            "Tanger-Tétouan-Al Hoceima": {"length": 3, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
             "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
             "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.1}},
-            "Rabat-Salé-Kénitra":        {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
+            "Rabat-Salé-Kénitra":        {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
             "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
-            "Casablanca-Settat":         {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
+            "Casablanca-Settat":         {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
             "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Guelmim-Oued Noun":         {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Laâyoune-Sakia El Hamra":   {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Dakhla-Oued Ed-Dahab":      {"length": 3, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
+            "Guelmim-Oued Noun":         {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Laâyoune-Sakia El Hamra":   {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Dakhla-Oued Ed-Dahab":      {"length": 2.5, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
         }
     },
     MAROC_SUD_COMBINE: {
@@ -770,6 +770,25 @@ main_layout = html.Div([
                 options=[{"label": r, "value": r} for r in NATIONAL_REGIONS],
                 placeholder="Sélectionner une région",
             ),
+
+            html.Div(
+                dcc.Checklist(
+                    id="show-names-only",
+                    options=[{"label": " Afficher les noms des régions (sans données)", "value": "names"}],
+                    value=[],
+                ),
+                id="show-names-only-wrapper",
+                className="omt-toggle", style={"marginTop": "10px"}
+            ),
+
+            html.Div(
+                dcc.Checklist(
+                    id="bold-labels",
+                    options=[{"label": " Texte en gras", "value": "bold"}],
+                    value=[],
+                ),
+                className="omt-toggle", style={"marginTop": "10px"}
+            ),
             ], className="omt-card omt-card-blue"),
 
             html.Div([
@@ -977,17 +996,31 @@ main_layout = html.Div([
                 id="loading-graph",
                 type="circle",
                 color="#2C7FB8",
-                children=dcc.Graph(
-                    id="graph-region",
-                    style={"height": "100%","minHeight": "85vh"},
-                    config={
-                        "displayModeBar": True,
-                        "toImageButtonOptions": {"format": "png", "scale": 6},
-                        "scrollZoom": False,    # ← désactive zoom souris
-                        "doubleClick": False, 
-                    }
-                )
-            )
+                children=html.Div([
+                    dcc.Graph(
+                        id="graph-region",
+                        style={"height": "100%","minHeight": "85vh"},
+                        config={
+                            "displayModeBar": True,
+                            "toImageButtonOptions": {"format": "png", "scale": 6},
+                            "scrollZoom": False,    # ← désactive zoom souris
+                            "doubleClick": False, 
+                        }
+                    ),
+                    # ===== OVERLAY HTML POUR LES ÉTIQUETTES (évite le wrap Mapbox) =====
+                    html.Div(id="label-overlay-container", style={
+                        "position": "absolute",
+                        "top": "0",
+                        "left": "0",
+                        "width": "100%",
+                        "height": "100%",
+                        "pointerEvents": "none",
+                        "overflow": "hidden"
+                    })
+                ], style={"position": "relative", "height": "100%", "minHeight": "85vh"})
+            ),
+            dcc.Store(id="label-overlay-store", data=[]),
+            html.Div(id="label-overlay-dummy", style={"display": "none"})
         ], className="omt-map-panel", style={
             "flex": "1",
             "marginLeft": "20px",
@@ -1040,6 +1073,18 @@ def update_region_options(mode):
     else:
         opts = [{"label": r, "value": r} for r in REGIONAL_REGIONS]
     return opts, None
+
+@app.callback(
+    Output("show-names-only-wrapper", "children"),
+    Input("analysis-mode", "value")
+)
+def update_names_toggle_label(mode):
+    label = "régions" if mode == "national" else "provinces"
+    return dcc.Checklist(
+        id="show-names-only",
+        options=[{"label": f" Afficher les noms des {label} (sans données)", "value": "names"}],
+        value=[],
+    )
 
 # ================= UPDATE PROVINCES =================
 @app.callback(
@@ -1269,12 +1314,14 @@ def show_confirm_clear(n_clicks):
     Output("stored-values", "data"),
     Output("upload-message", "children"),
     Output("toast-trigger", "data"),
+    Output("label-overlay-store", "data"),
     Input("btn-update", "n_clicks"),
     Input("confirm-clear", "submit_n_clicks"),
     Input("upload-excel", "contents"),
     State("excel-contents-store", "data"),
     State("stored-values", "data"),
     State("filter-region", "value"),
+    State("show-names-only", "value"),
     State("dropdown-province", "value"),
     State("input-value", "value"),
     State("input-evolution", "value"),
@@ -1286,15 +1333,18 @@ def show_confirm_clear(n_clicks):
     State("class2-min", "value"), State("class2-max", "value"), State("class2-color", "value"),
     State("class3-min", "value"), State("class3-max", "value"), State("class3-color", "value"),
     State("province-colors-store", "data"),
+    State("bold-labels", "value"),
 )
 def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_values, region_name,
+                  show_names_only,
                   selected_province, val, evo, invert_colors, show_percent, color_mode, single_color,
                   c1min, c1max, c1color,
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
-                  province_colors):
+                  province_colors, bold_labels):
     upload_msg = dash.no_update
     toast_data = dash.no_update
+    label_overlay_data = []
 
     # Initialiser si vide
     if not stored_values:
@@ -1403,7 +1453,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             uirevision="Maroc",
         )
 
-        return fig, stored_values, dash.no_update, dash.no_update
+        return fig, stored_values, dash.no_update, dash.no_update, []
 
     # ===== Ajout manuel =====
     if selected_province and (val is not None or evo is not None):
@@ -1499,7 +1549,9 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         part = data.get("part")
         evo_val_disp = data.get("evolution")
 
-        if part is None and evo_val_disp is None:
+        show_names = show_names_only and "names" in show_names_only
+
+        if part is None and evo_val_disp is None and not show_names:
             continue
 
         auto_side = 1 if lon >= region_mid_lon else -1
@@ -1531,36 +1583,29 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             showlegend=False
         ))
 
-        if region_name in ("Maroc", MAROC_SUD_COMBINE):
-            label_text = name.replace("-", " ").replace(" ", "\u00A0")
-        else:
-            label_text = name.replace(" ", "\u00A0")
+        label_text = name
 
         if part is not None and str(part).strip() != "":
             part_float = float(part)
             part_rounded = round(part_float, 1)
             part_display = int(part_rounded) if part_rounded == int(part_rounded) else str(part_rounded).replace(".", ",")
             if show_percent and "percent" in show_percent:
-                label_text += f"\u00A0{part_display}%"
+                label_text += f" {part_display}%"
             else:
-                label_text += f"\u00A0{part_display}"
+                label_text += f" {part_display}"
 
-        if region_name in ("Maroc", MAROC_SUD_COMBINE):
-            fig.add_trace(go.Scattermapbox(
-                lon=[label_lon], lat=[label_lat + lat_offset_text],
-                mode="text",
-                text=[label_text],
-                textfont=dict(size=text_size, color="black", weight="bold"),
-                showlegend=False
-            ))
-        else:
-            fig.add_trace(go.Scattermapbox(
-                lon=[label_lon], lat=[label_lat + lat_offset_text],
-                mode="text",
-                text=[label_text],
-                textfont=dict(size=text_size, color="black"),
-                showlegend=False
-            ))
+        # ===== ÉTIQUETTE VIA OVERLAY HTML (au lieu de Scattermapbox mode="text") =====
+        # Évite le retour à la ligne forcé par le moteur de texte de Mapbox GL au niveau
+        # des tirets. Le texte est rendu en HTML natif par-dessus la carte, positionné
+        # au pixel près via map.project() côté client (callback clientside plus bas).
+        label_overlay_data.append({
+            "lon": label_lon,
+            "lat": label_lat + lat_offset_text,
+            "text": label_text,
+            "fontsize": text_size,
+            "color": "black",
+            "bold": bool(bold_labels and "bold" in bold_labels)
+        })
 
         if evo_val_disp is not None and str(evo_val_disp).strip() != "":
             evo_float = float(evo_val_disp)
@@ -1572,10 +1617,12 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             evo_abs_float = abs(evo_float)
             evo_abs_rounded = round(evo_abs_float, 1)
             evo_abs = int(evo_abs_rounded) if evo_abs_rounded == int(evo_abs_rounded) else str(evo_abs_rounded).replace(".", ",")
+
+            # Losange coloré : reste en Scattermapbox (c'est une forme, pas du texte)
             fig.add_trace(go.Scattermapbox(
                 lon=[label_lon],
                 lat=[label_lat - lat_offset_evo],
-                mode="markers+text",
+                mode="markers",
                 marker=dict(
                     size=diamond_size,
                     color=color,
@@ -1583,12 +1630,22 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                     allowoverlap=True,
                     opacity=1
                 ),
-                text=[f"  {sign}{evo_abs}%"],
-                textposition="middle right",
-                textfont=dict(size=evo_size, color=color),
                 showlegend=False,
                 hoverinfo="skip"
             ))
+
+            # Texte "+X%/-X%" : overlay HTML (permet le gras de façon fiable,
+            # cohérent avec le nom de région/province)
+            label_overlay_data.append({
+                "lon": label_lon,
+                "lat": label_lat - lat_offset_evo,
+                "text": f"{sign}{evo_abs}%",
+                "fontsize": evo_size,
+                "color": color,
+                "bold": bool(bold_labels and "bold" in bold_labels),
+                "anchor": "left",
+                "offset_px": diamond_size / 2 + 6
+            })
 
     fig.update_layout(
         mapbox=dict(
@@ -1601,7 +1658,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         height=950
     )
 
-    return fig, stored_values, upload_msg, toast_data
+    return fig, stored_values, upload_msg, toast_data, label_overlay_data
 
 
 @app.callback(
@@ -1827,6 +1884,130 @@ def reset_password_callback(n_clicks, email, password, password2):
 def logout(n_clicks):
     session.clear()
     return "/"
+
+# ===== OVERLAY HTML DES ÉTIQUETTES (fix anti-wrap) =====
+# Positionne les labels (noms de régions/provinces) en HTML natif par-dessus la carte,
+# au pixel exact via l'API interne Mapbox GL (map.project). Ceci contourne le moteur de
+# texte de Mapbox GL qui coupe systématiquement le texte au niveau des tirets, sans
+# possibilité de le désactiver depuis l'API Plotly. Les lignes, points noirs et losanges
+# d'évolution restent inchangés, rendus normalement par Scattermapbox.
+app.clientside_callback(
+    """
+    function(figure, labelData) {
+        window._omtLabelData = labelData || [];
+
+        if (!window._omtLabelLoopStarted) {
+            window._omtLabelLoopStarted = true;
+
+            function mercatorX(lon, worldSize) {
+                return (lon + 180) / 360 * worldSize;
+            }
+            function mercatorY(lat, worldSize) {
+                var rad = lat * Math.PI / 180;
+                return (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * worldSize;
+            }
+
+            function getGd() {
+                var wrapper = document.getElementById('graph-region');
+                if (!wrapper) return null;
+                if (wrapper.layout) return wrapper;
+                var inner = wrapper.querySelector('.js-plotly-plot');
+                if (inner && inner.layout) return inner;
+                return null;
+            }
+
+            var _omtLastLog = 0;
+            function debugLog(msg) {
+                var now = Date.now();
+                if (now - _omtLastLog > 1000) {
+                    _omtLastLog = now;
+                    console.log('[OMT labels] ' + msg);
+                }
+            }
+
+            function loop() {
+                var gd = getGd();
+                var overlay = document.getElementById('label-overlay-container');
+
+                if (!gd) {
+                    debugLog('gd introuvable (élément Plotly non trouvé sous #graph-region)');
+                } else if (!overlay) {
+                    debugLog('overlay introuvable (#label-overlay-container absent du DOM)');
+                } else if (!gd.layout || !gd.layout.mapbox) {
+                    debugLog('gd.layout.mapbox absent (pas encore de subplot mapbox rendu)');
+                }
+
+                if (gd && overlay && gd.layout && gd.layout.mapbox) {
+                    var mb = gd.layout.mapbox;
+                    var zoom = mb.zoom;
+                    var center = mb.center;
+
+                    if (zoom === undefined || zoom === null || !center) {
+                        debugLog('zoom/center absents de gd.layout.mapbox: ' + JSON.stringify(mb));
+                    }
+
+                    if (zoom !== undefined && zoom !== null && center) {
+                        var rect = overlay.getBoundingClientRect();
+                        var w = rect.width;
+                        var h = rect.height;
+
+                        if (w <= 0 || h <= 0) {
+                            debugLog('overlay a une taille nulle (w=' + w + ', h=' + h + ')');
+                        }
+
+                        if (w > 0 && h > 0) {
+                            var worldSize = 512 * Math.pow(2, zoom);
+                            var cx = mercatorX(center.lon, worldSize);
+                            var cy = mercatorY(center.lat, worldSize);
+
+                            var data = window._omtLabelData || [];
+                            debugLog(data.length + ' étiquette(s) en attente de rendu');
+
+                            if (overlay.childElementCount !== data.length) {
+                                overlay.innerHTML = '';
+                                for (var k = 0; k < data.length; k++) {
+                                    var d = document.createElement('div');
+                                    d.style.position = 'absolute';
+                                    d.style.whiteSpace = 'nowrap';
+                                    d.style.pointerEvents = 'none';
+                                    d.style.fontFamily = '"Lato", Arial, Helvetica, sans-serif';
+                                    overlay.appendChild(d);
+                                }
+                            }
+
+                            for (var i = 0; i < data.length; i++) {
+                                var item = data[i];
+                                var offsetPx = item.offset_px || 0;
+                                var px = mercatorX(item.lon, worldSize) - cx + w / 2 + offsetPx;
+                                var py = mercatorY(item.lat, worldSize) - cy + h / 2;
+                                var div = overlay.children[i];
+                                div.innerText = item.text;
+                                div.style.left = px + 'px';
+                                div.style.top = py + 'px';
+                                div.style.transform = (item.anchor === 'left')
+                                    ? 'translate(0, -50%)'
+                                    : 'translate(-50%, -50%)';
+                                div.style.fontSize = item.fontsize + 'px';
+                                div.style.color = item.color || 'black';
+                                div.style.fontWeight = item.bold ? '700' : '400';
+                            }
+                        }
+                    }
+                }
+
+                window.requestAnimationFrame(loop);
+            }
+
+            window.requestAnimationFrame(loop);
+        }
+
+        return '';
+    }
+    """,
+    Output("label-overlay-dummy", "children"),
+    Input("graph-region", "figure"),
+    Input("label-overlay-store", "data"),
+)
 
 # ================= RUN =================
 #if __name__ == "__main__":
