@@ -115,9 +115,9 @@ MAP_LABEL_CONFIG = {
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
             "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.6}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Guelmim-Oued Noun":         {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Laâyoune-Sakia El Hamra":   {"length": 1.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Dakhla-Oued Ed-Dahab":      {"length": 1.5, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
+            "Guelmim-Oued Noun":         {"length": 1.5, "side": "right",  "anchor_offset": {"lon": 1.5, "lat": -0.6}},
+            "Laâyoune-Sakia El Hamra":   {"length": 2.5, "side": "right",  "anchor_offset": {"lon": 1.5, "lat": -0.9}},
+            "Dakhla-Oued Ed-Dahab":      {"length": 2.5, "side": "right", "anchor_offset": {"lon": 3,  "lat": 0.5}},
         }
     },
     MAROC_SUD_COMBINE: {
@@ -135,7 +135,7 @@ MAP_LABEL_CONFIG = {
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
             "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.6}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Régions du Sud":            {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Régions du Sud":            {"length": 6, "side": "right",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
         }
     },
 
@@ -1694,19 +1694,19 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             })
 
     # ===== LÉGENDE (texte optionnel saisi par l'utilisateur) =====
-    # Positionnée à un point fixe de la carte : centrée en longitude sur le centre de
-    # la vue actuelle, et sous les provinces les plus au sud (donc dans une zone
-    # généralement vide, quelle que soit la région affichée).
+    # Positionnée vers la droite et le bas de la carte (décalée par rapport au centre
+    # géographique de la vue actuelle), pour rester à l'écart des étiquettes des
+    # régions du sud (Dakhla, Laâyoune, Guelmim) désormais affichées à droite.
     # Même taille de texte que les autres étiquettes (text_size) et mêmes flèches
     # (vert ▲ / rouge ▼, séparées) que celles utilisées pour l'évolution.
     # Si le texte dépasse 8 mots, il est réparti sur 2 lignes.
     if legend_text and legend_text.strip():
-        legend_lon = sum(lon_values) / len(lon_values)
-        legend_lat = min(lat_values) - 0.35
+        legend_lon = region_mid_lon + (max(lon_values) - min(lon_values)) * 0.08
+        legend_lat = min(lat_values) - 1.3
 
         legend_words = legend_text.strip().split()
-        legend_line1 = " ".join(legend_words[:8])
-        legend_line2 = " ".join(legend_words[8:]) if len(legend_words) > 8 else None
+        legend_line1 = " ".join(legend_words[:5])
+        legend_line2 = " ".join(legend_words[5:]) if len(legend_words) > 5 else None
 
         label_overlay_data.append({
             "lon": legend_lon,
@@ -1716,7 +1716,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             "color": "black",
             "bold": False,
             "anchor": "left",
-            "offset_px": -30,
+            "offset_px": 0,
             "voffset_px": 0,
             "gap_px": 0,
             "icon2": ARROW_UP_GREEN,
@@ -1732,7 +1732,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                 "color": "black",
                 "bold": False,
                 "anchor": "left",
-                "offset_px": -30,
+                "offset_px": 0,
                 "voffset_px": text_size + 3
             })
 
