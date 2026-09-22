@@ -29,6 +29,17 @@ def make_arrow_b64(color_hex, direction="up"):
 ARROW_UP_GREEN = make_arrow_b64("#1a9641", "up")
 ARROW_DOWN_RED = make_arrow_b64("#d7191c", "down")
 
+# ================= ICONE LEGENDE (flèche verte + flèche rouge combinées) =================
+def make_legend_icon_b64():
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30">
+  <polygon points="15,2 28,26 2,26" fill="#1a9641" />
+  <polygon points="45,28 58,4 32,4" fill="#d7191c" />
+</svg>'''
+    b64 = base64.b64encode(svg.encode()).decode()
+    return f"data:image/svg+xml;base64,{b64}"
+
+LEGEND_ICON = make_legend_icon_b64()
+
 # ================= GEOJSON =================
 with open("morocco_Province_level_2.geojson", encoding="utf-8") as f:
     geo_provinces = json.load(f)
@@ -92,39 +103,39 @@ MAP_LABEL_CONFIG = {
     "Maroc": {
         "default_length": 0.5,
         "zoom": 3.8,
-        "text_size": 16,
+        "text_size": 17,
         "evo_size": 17,
         "provinces": {
             "Tanger-Tétouan-Al Hoceima": {"length": 3, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
-            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
-            "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.1}},
+            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.05}},
+            "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.3}},
             "Rabat-Salé-Kénitra":        {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
-            "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.55}},
             "Casablanca-Settat":         {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.6}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Guelmim-Oued Noun":         {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Laâyoune-Sakia El Hamra":   {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Dakhla-Oued Ed-Dahab":      {"length": 2.5, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
+            "Guelmim-Oued Noun":         {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Laâyoune-Sakia El Hamra":   {"length": 1.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Dakhla-Oued Ed-Dahab":      {"length": 1.5, "side": "left", "anchor_offset": {"lon": 0.2,  "lat": 0.5}},
         }
     },
     MAROC_SUD_COMBINE: {
         "default_length": 0.5,
         "zoom": 3.8,
-        "text_size": 18,
+        "text_size": 17,
         "evo_size": 17,
         "provinces": {
             "Tanger-Tétouan-Al Hoceima": {"length": 3.5, "side": "left", "anchor_offset": {"lon": -0.5,  "lat": 0.1}},
-            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
-            "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.1}},
+            "L'Oriental":                  {"length": 2, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.05}},
+            "Fès-Meknès":                {"length": 5, "side": "right", "anchor_offset": {"lon": 0.0,  "lat": -0.3}},
             "Rabat-Salé-Kénitra":        {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
-            "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Béni Mellal-Khénifra":      {"length": 7, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.55}},
             "Casablanca-Settat":         {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.1}},
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": 0.0}},
+            "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.6}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Régions du Sud":            {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Régions du Sud":            {"length": 3, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
         }
     },
 
@@ -667,7 +678,6 @@ reset_layout = html.Div([
         "justifyContent": "center", "minHeight": "100vh",
         "background": """
             radial-gradient(ellipse at 20% 50%, rgba(44,127,184,0.15) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 20%, rgba(39,174,96,0.10) 0%, transparent 50%),
             radial-gradient(ellipse at 60% 80%, rgba(44,127,184,0.10) 0%, transparent 50%),
             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect fill="%23EDF6F7"/></svg>')
         """,
@@ -788,6 +798,17 @@ main_layout = html.Div([
                     value=[],
                 ),
                 className="omt-toggle", style={"marginTop": "10px"}
+            ),
+
+            html.Label("Légende (optionnel)", style={
+                "fontSize": "11px", "color": "#888", "marginTop": "12px",
+                "marginBottom": "5px", "display": "block"
+            }),
+            dcc.Input(
+                id="legend-text",
+                type="text",
+                placeholder="Ex : Evolution annuelle des EPMA entre 2024 et 2025",
+                style={"width": "100%"}
             ),
             ], className="omt-card omt-card-blue"),
 
@@ -1334,6 +1355,7 @@ def show_confirm_clear(n_clicks):
     State("class3-min", "value"), State("class3-max", "value"), State("class3-color", "value"),
     State("province-colors-store", "data"),
     State("bold-labels", "value"),
+    State("legend-text", "value"),
 )
 def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_values, region_name,
                   show_names_only,
@@ -1341,7 +1363,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                   c1min, c1max, c1color,
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
-                  province_colors, bold_labels):
+                  province_colors, bold_labels, legend_text):
     upload_msg = dash.no_update
     toast_data = dash.no_update
     label_overlay_data = []
@@ -1567,13 +1589,17 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
 
         gap = 0.17
 
-        line_end_lon = lon + side * (line_length - gap)
-        label_lon = lon + side * line_length
+        # Ligne légèrement raccourcie (facteur global, s'applique à toutes les régions)
+        LINE_LENGTH_FACTOR = 0.8
+        line_length_drawn = line_length * LINE_LENGTH_FACTOR
+
+        line_end_lon = lon + side * (line_length_drawn - gap)
+        label_lon = lon + side * line_length_drawn
         label_lat = lat
 
         fig.add_trace(go.Scattermapbox(
             lon=[lon, line_end_lon], lat=[label_lat, label_lat],
-            mode="lines", line=dict(color="black", width=2),
+            mode="lines", line=dict(color="black", width=1),
             showlegend=False
         ))
 
@@ -1583,29 +1609,58 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             showlegend=False
         ))
 
-        label_text = name
-
+        part_display = None
         if part is not None and str(part).strip() != "":
             part_float = float(part)
             part_rounded = round(part_float, 1)
-            part_display = int(part_rounded) if part_rounded == int(part_rounded) else str(part_rounded).replace(".", ",")
-            if show_percent and "percent" in show_percent:
-                label_text += f" {part_display}%"
-            else:
-                label_text += f" {part_display}"
+            part_num = int(part_rounded) if part_rounded == int(part_rounded) else str(part_rounded).replace(".", ",")
+            part_display = f"{part_num}%" if (show_percent and "percent" in show_percent) else f"{part_num}"
 
-        # ===== ÉTIQUETTE VIA OVERLAY HTML (au lieu de Scattermapbox mode="text") =====
+        # ===== ÉTIQUETTES VIA OVERLAY HTML (au lieu de Scattermapbox mode="text") =====
         # Évite le retour à la ligne forcé par le moteur de texte de Mapbox GL au niveau
         # des tirets. Le texte est rendu en HTML natif par-dessus la carte, positionné
-        # au pixel près via map.project() côté client (callback clientside plus bas).
+        # au pixel près via une projection Mercator calculée côté client.
+        #
+        # Alignement : nom / part / évolution partagent le même point de référence
+        # (lon=label_lon, lat=label_lat) et le même ancrage horizontal, qui dépend du
+        # côté ("side") où la ligne part — à droite du point pour les régions à droite,
+        # à gauche du point pour les régions à gauche (sinon le texte traverse la ligne).
+        # L'empilement vertical (nom, puis part, puis évolution) se fait en pixels
+        # (voffset_px), pas en degrés lat/lon : l'alignement reste donc identique
+        # quel que soit le niveau de zoom de la région affichée.
+        h_anchor = "left" if side == 1 else "right"
+        h_offset_px = (diamond_size / 2 + 6) if side == 1 else -(diamond_size / 2 + 6)
+
+        row_gap = 3  # espace vertical entre les lignes, en pixels
+        row_height_name = text_size + row_gap
+        row_height_part = (text_size + row_gap) if part_display else 0
+
+        # Ligne 1 : le nom seul
         label_overlay_data.append({
             "lon": label_lon,
-            "lat": label_lat + lat_offset_text,
-            "text": label_text,
+            "lat": label_lat,
+            "text": name,
             "fontsize": text_size,
             "color": "black",
-            "bold": bool(bold_labels and "bold" in bold_labels)
+            "bold": bool(bold_labels and "bold" in bold_labels),
+            "anchor": h_anchor,
+            "offset_px": h_offset_px,
+            "voffset_px": 0
         })
+
+        # Ligne 2 : la part, seule, sous le nom
+        if part_display:
+            label_overlay_data.append({
+                "lon": label_lon,
+                "lat": label_lat,
+                "text": part_display,
+                "fontsize": text_size,
+                "color": "black",
+                "bold": True,
+                "anchor": h_anchor,
+                "offset_px": h_offset_px,
+                "voffset_px": row_height_name
+            })
 
         if evo_val_disp is not None and str(evo_val_disp).strip() != "":
             evo_float = float(evo_val_disp)
@@ -1618,33 +1673,67 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             evo_abs_rounded = round(evo_abs_float, 1)
             evo_abs = int(evo_abs_rounded) if evo_abs_rounded == int(evo_abs_rounded) else str(evo_abs_rounded).replace(".", ",")
 
-            # Losange coloré : reste en Scattermapbox (c'est une forme, pas du texte)
-            fig.add_trace(go.Scattermapbox(
-                lon=[label_lon],
-                lat=[label_lat - lat_offset_evo],
-                mode="markers",
-                marker=dict(
-                    size=diamond_size,
-                    color=color,
-                    symbol="diamond",
-                    allowoverlap=True,
-                    opacity=1
-                ),
-                showlegend=False,
-                hoverinfo="skip"
-            ))
+            # Ligne 3 : losange + flèche + "+X%/-X%", tout en overlay HTML pour un
+            # alignement pixel-parfait avec les deux lignes du dessus (le losange
+            # n'est plus un marker Scattermapbox séparé, ce qui évitait un léger
+            # décalage possible entre lui et le texte selon le zoom).
+            arrow_direction = "up" if evo_float >= 0 else "down"
+            arrow_b64 = make_arrow_b64(color, arrow_direction)
 
-            # Texte "+X%/-X%" : overlay HTML (permet le gras de façon fiable,
-            # cohérent avec le nom de région/province)
             label_overlay_data.append({
                 "lon": label_lon,
-                "lat": label_lat - lat_offset_evo,
+                "lat": label_lat,
                 "text": f"{sign}{evo_abs}%",
                 "fontsize": evo_size,
                 "color": color,
-                "bold": bool(bold_labels and "bold" in bold_labels),
+                "bold": True,
+                "anchor": h_anchor,
+                "offset_px": h_offset_px,
+                "voffset_px": row_height_name + row_height_part,
+                "arrow": arrow_b64
+            })
+
+    # ===== LÉGENDE (texte optionnel saisi par l'utilisateur) =====
+    # Positionnée à un point fixe de la carte : centrée en longitude sur le centre de
+    # la vue actuelle, et sous les provinces les plus au sud (donc dans une zone
+    # généralement vide, quelle que soit la région affichée).
+    # Même taille de texte que les autres étiquettes (text_size) et mêmes flèches
+    # (vert ▲ / rouge ▼, séparées) que celles utilisées pour l'évolution.
+    # Si le texte dépasse 8 mots, il est réparti sur 2 lignes.
+    if legend_text and legend_text.strip():
+        legend_lon = sum(lon_values) / len(lon_values)
+        legend_lat = min(lat_values) - 0.35
+
+        legend_words = legend_text.strip().split()
+        legend_line1 = " ".join(legend_words[:8])
+        legend_line2 = " ".join(legend_words[8:]) if len(legend_words) > 8 else None
+
+        label_overlay_data.append({
+            "lon": legend_lon,
+            "lat": legend_lat,
+            "text": legend_line1,
+            "fontsize": text_size,
+            "color": "black",
+            "bold": False,
+            "anchor": "left",
+            "offset_px": -30,
+            "voffset_px": 0,
+            "gap_px": 0,
+            "icon2": ARROW_UP_GREEN,
+            "arrow": ARROW_DOWN_RED
+        })
+
+        if legend_line2:
+            label_overlay_data.append({
+                "lon": legend_lon,
+                "lat": legend_lat,
+                "text": legend_line2,
+                "fontsize": text_size,
+                "color": "black",
+                "bold": False,
                 "anchor": "left",
-                "offset_px": diamond_size / 2 + 6
+                "offset_px": -30,
+                "voffset_px": text_size + 3
             })
 
     fig.update_layout(
@@ -1887,10 +1976,10 @@ def logout(n_clicks):
 
 # ===== OVERLAY HTML DES ÉTIQUETTES (fix anti-wrap) =====
 # Positionne les labels (noms de régions/provinces) en HTML natif par-dessus la carte,
-# au pixel exact via l'API interne Mapbox GL (map.project). Ceci contourne le moteur de
-# texte de Mapbox GL qui coupe systématiquement le texte au niveau des tirets, sans
-# possibilité de le désactiver depuis l'API Plotly. Les lignes, points noirs et losanges
-# d'évolution restent inchangés, rendus normalement par Scattermapbox.
+# au pixel exact via une projection Web Mercator calculée côté client à partir des
+# propriétés publiques gd.layout.mapbox.center/zoom. Ceci contourne le moteur de texte
+# de Mapbox GL qui coupe systématiquement le texte au niveau des tirets, sans
+# possibilité de le désactiver depuis l'API Plotly.
 app.clientside_callback(
     """
     function(figure, labelData) {
@@ -1971,6 +2060,23 @@ app.clientside_callback(
                                     d.style.whiteSpace = 'nowrap';
                                     d.style.pointerEvents = 'none';
                                     d.style.fontFamily = '"Lato", Arial, Helvetica, sans-serif';
+                                    d.style.display = 'flex';
+                                    d.style.alignItems = 'center';
+                                    d.style.gap = (data[k].gap_px !== undefined ? data[k].gap_px : 3) + 'px';
+
+                                    var diamond = document.createElement('span');
+                                    diamond.style.display = 'none';
+                                    diamond.style.flexShrink = '0';
+                                    d.appendChild(diamond);
+
+                                    var img = document.createElement('img');
+                                    img.style.display = 'none';
+                                    img.style.flexShrink = '0';
+                                    d.appendChild(img);
+
+                                    var span = document.createElement('span');
+                                    d.appendChild(span);
+
                                     overlay.appendChild(d);
                                 }
                             }
@@ -1978,18 +2084,60 @@ app.clientside_callback(
                             for (var i = 0; i < data.length; i++) {
                                 var item = data[i];
                                 var offsetPx = item.offset_px || 0;
+                                var voffsetPx = item.voffset_px || 0;
                                 var px = mercatorX(item.lon, worldSize) - cx + w / 2 + offsetPx;
-                                var py = mercatorY(item.lat, worldSize) - cy + h / 2;
+                                var py = mercatorY(item.lat, worldSize) - cy + h / 2 + voffsetPx;
                                 var div = overlay.children[i];
-                                div.innerText = item.text;
+                                var diamond = div.children[0];
+                                var img = div.children[1];
+                                var span = div.children[2];
+
+                                span.textContent = item.text;
+                                span.style.color = item.color || 'black';
+                                span.style.fontSize = item.fontsize + 'px';
+                                span.style.fontWeight = item.bold ? '700' : '400';
+
+                                if (item.icon2) {
+                                    var i2Size = Math.round(item.fontsize * 0.9);
+                                    diamond.style.width = i2Size + 'px';
+                                    diamond.style.height = i2Size + 'px';
+                                    diamond.style.backgroundImage = 'url(' + item.icon2 + ')';
+                                    diamond.style.backgroundSize = 'contain';
+                                    diamond.style.backgroundRepeat = 'no-repeat';
+                                    diamond.style.backgroundColor = 'transparent';
+                                    diamond.style.transform = 'none';
+                                    diamond.style.display = 'inline-block';
+                                } else if (item.diamond_color) {
+                                    var dSize = Math.round((item.diamond_size || item.fontsize) * 0.6);
+                                    diamond.style.width = dSize + 'px';
+                                    diamond.style.height = dSize + 'px';
+                                    diamond.style.background = item.diamond_color;
+                                    diamond.style.transform = 'rotate(45deg)';
+                                    diamond.style.display = 'inline-block';
+                                } else {
+                                    diamond.style.display = 'none';
+                                }
+
+                                if (item.arrow) {
+                                    var iconSize = Math.round(item.fontsize * 0.9);
+                                    img.src = item.arrow;
+                                    img.style.width = iconSize + 'px';
+                                    img.style.height = iconSize + 'px';
+                                    img.style.marginRight = item.icon2 ? '5px' : '0px';
+                                    img.style.display = 'inline-block';
+                                } else {
+                                    img.style.display = 'none';
+                                }
+
+                                // Seul le point d'ancrage du bloc change selon le côté
+                                // (gauche/droite de la ligne) — l'ordre interne flèche→texte
+                                // reste toujours le même, des deux côtés de la carte.
+                                var isRight = (item.anchor === 'right');
                                 div.style.left = px + 'px';
                                 div.style.top = py + 'px';
-                                div.style.transform = (item.anchor === 'left')
-                                    ? 'translate(0, -50%)'
-                                    : 'translate(-50%, -50%)';
-                                div.style.fontSize = item.fontsize + 'px';
-                                div.style.color = item.color || 'black';
-                                div.style.fontWeight = item.bold ? '700' : '400';
+                                div.style.transform = isRight
+                                    ? 'translate(-100%, -50%)'
+                                    : 'translate(0, -50%)';
                             }
                         }
                     }
