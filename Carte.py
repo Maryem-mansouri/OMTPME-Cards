@@ -135,7 +135,7 @@ MAP_LABEL_CONFIG = {
             "Marrakech-Safi":            {"length": 2.5, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
             "Drâa-Tafilalet":            {"length": 3.5, "side": "right", "anchor_offset": {"lon": 0.1,  "lat": -0.6}},
             "Souss-Massa":               {"length": 2, "side": "left",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
-            "Régions du Sud":            {"length": 6, "side": "right",  "anchor_offset": {"lon": -0.1, "lat": 0.0}},
+            "Régions du Sud":            {"length": 2.5, "side": "right",  "anchor_offset": {"lon": 1.5, "lat": -0.9}},
         }
     },
 
@@ -343,6 +343,29 @@ server.secret_key = "omtpme_secret_key_2025_changez_moi"
 
 
 # ================= UTILS =================
+def format_number_adaptive(value):
+    """Arrondit une valeur à 1 décimale. Si le résultat arrondi vaut 0 alors que
+    la valeur réelle est non nulle, augmente la précision jusqu'à faire
+    apparaître le premier chiffre significatif après la virgule
+    (ex: 0.03 → '0,03' au lieu de '0')."""
+    if value == 0:
+        return "0"
+
+    decimals = 1
+    rounded = round(value, decimals)
+    while rounded == 0 and decimals < 10:
+        decimals += 1
+        rounded = round(value, decimals)
+
+    if rounded == int(rounded):
+        return str(int(rounded))
+
+    text = f"{rounded:.{decimals}f}"
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text.replace(".", ",")
+
+
 def province_center(feature):
     geometry = feature["geometry"]
 
@@ -1612,8 +1635,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         part_display = None
         if part is not None and str(part).strip() != "":
             part_float = float(part)
-            part_rounded = round(part_float, 1)
-            part_num = int(part_rounded) if part_rounded == int(part_rounded) else str(part_rounded).replace(".", ",")
+            part_num = format_number_adaptive(part_float)
             part_display = f"{part_num}%" if (show_percent and "percent" in show_percent) else f"{part_num}"
 
         # ===== ÉTIQUETTES VIA OVERLAY HTML (au lieu de Scattermapbox mode="text") =====
@@ -1670,8 +1692,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             else:
                 color = "#1a9641" if evo_float >= 0 else "#d7191c"
             evo_abs_float = abs(evo_float)
-            evo_abs_rounded = round(evo_abs_float, 1)
-            evo_abs = int(evo_abs_rounded) if evo_abs_rounded == int(evo_abs_rounded) else str(evo_abs_rounded).replace(".", ",")
+            evo_abs = format_number_adaptive(evo_abs_float)
 
             # Ligne 3 : losange + flèche + "+X%/-X%", tout en overlay HTML pour un
             # alignement pixel-parfait avec les deux lignes du dessus (le losange
