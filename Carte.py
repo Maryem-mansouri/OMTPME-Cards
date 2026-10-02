@@ -482,6 +482,7 @@ login_layout = html.Div([
                     "fontWeight": "600", "textDecoration": "none"
                 })
             ], style={"textAlign": "center", "marginTop": "8px"}),
+                   
 
             #html.P("Réalisé par Maryem El Mansouri — © 2025", style={
             #    "textAlign": "center", "fontSize": "10px",
@@ -502,11 +503,29 @@ login_layout = html.Div([
             radial-gradient(ellipse at 60% 80%, rgba(44,127,184,0.10) 0%, transparent 50%),
             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect fill="%23EDF6F7"/><path d="M150,300 Q200,200 280,220 Q350,240 380,180 Q420,120 500,150 Q560,170 580,130 Q620,80 680,100" stroke="%232c7fb8" stroke-width="2" fill="none" opacity="0.15"/><path d="M100,350 Q180,320 220,280 Q270,240 320,260 Q370,280 420,240 Q470,200 540,220 Q600,240 650,200 Q700,160 750,180" stroke="%2327ae60" stroke-width="1.5" fill="none" opacity="0.12"/><circle cx="200" cy="250" r="80" fill="%232c7fb8" opacity="0.04"/><circle cx="600" cy="180" r="60" fill="%232c7fb8" opacity="0.05"/><circle cx="400" cy="400" r="100" fill="%2327ae60" opacity="0.04"/><path d="M50,400 L100,380 L150,390 L200,370 L250,380 L300,360 L350,370 L400,350 L450,360 L500,340 L550,350 L600,330 L650,340 L700,320 L750,330 L750,420 L50,420 Z" fill="%232c7fb8" opacity="0.06"/><path d="M50,430 L100,415 L150,425 L200,410 L250,420 L300,405 L350,415 L400,400 L450,408 L500,395 L550,405 L600,390 L650,400 L700,385 L750,395 L750,480 L50,480 Z" fill="%232c7fb8" opacity="0.04"/></svg>')
         """,
-        "backgroundSize": "cover",
+                "backgroundSize": "cover",
         "backgroundPosition": "center",
         "position": "relative"
+    }),
+
+    html.Button("Continuer en tant qu'invité →", id="btn-guest", n_clicks=0, style={
+        "position": "fixed",
+        "top": "30px",
+        "right": "30px",
+        "padding": "11px 20px",
+        "backgroundColor": "white",
+        "color": "#2c7fb8",
+        "border": "1.5px solid #2c7fb8",
+        "borderRadius": "8px",
+        "fontWeight": "600",
+        "fontSize": "13px",
+        "cursor": "pointer",
+        "boxShadow": "0px 3px 10px rgba(0,0,0,0.08)",
+        "zIndex": "999"
     })
 ])
+
+# ===== LAYOUT INSCRIPTION =====
 
 # ===== LAYOUT INSCRIPTION =====
 register_layout = html.Div([
@@ -1879,6 +1898,17 @@ def login(n_clicks, email, password):
         "borderRadius": "6px", "padding": "8px"
     }, dash.no_update
 
+# ===== MODE INVITÉ =====
+@app.callback(
+    Output("url", "pathname", allow_duplicate=True),
+    Input("btn-guest", "n_clicks"),
+    prevent_initial_call=True
+)
+def continue_as_guest(n_clicks):
+    session["authenticated"] = True
+    session["email"] = "guest"
+    session["is_guest"] = True
+    return "/dashboard"
 
 # ===== INSCRIPTION =====
 @app.callback(
