@@ -991,14 +991,22 @@ main_layout = html.Div([
                     dcc.Input(id="class2-color", type="text", placeholder="#couleur", value="#6baed6", style={"width": "80px", "fontSize": "11px"}),
                     html.Span("Classe 2", style={"fontSize": "11px", "color": "#555"})
                 ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
-                html.Div([
+                                html.Div([
                     dcc.Input(id="class3-min", type="number", placeholder="Min", style={"width": "60px", "fontSize": "11px"}),
                     dcc.Input(id="class3-max", type="number", placeholder="Max", style={"width": "60px", "fontSize": "11px"}),
                     dcc.Input(id="class3-color", type="text", placeholder="#couleur", value="#2171b5", style={"width": "80px", "fontSize": "11px"}),
                     html.Span("Classe 3", style={"fontSize": "11px", "color": "#555"})
                 ], style={"display": "flex", "gap": "4px", "marginBottom": "4px", "alignItems": "center"}),
+
+                html.P("Libellés affichés dans la légende sur la carte (optionnel) :", style={"fontSize": "11px", "color": "#888", "marginTop": "10px", "marginBottom": "5px"}),
+                dcc.Input(id="legend-class1-label", type="text", placeholder="Ex : CA supérieur à 500 000 MDH",
+                    style={"width": "100%", "fontSize": "11px", "marginBottom": "4px", "padding": "5px"}),
+                dcc.Input(id="legend-class2-label", type="text", placeholder="Ex : CA compris entre 50 000 et 500 000 MDH",
+                    style={"width": "100%", "fontSize": "11px", "marginBottom": "4px", "padding": "5px"}),
+                dcc.Input(id="legend-class3-label", type="text", placeholder="Ex : CA inférieur à 50 000 MDH",
+                    style={"width": "100%", "fontSize": "11px", "padding": "5px"}),
             ], style={"display": "none"}),
-            
+
             # Couleur par défaut (mode single)
             html.Div(id="color-single-config", children=[
                 html.P("Couleur unique :", style={"fontSize": "11px", "color": "#888", "marginBottom": "5px"}),
@@ -1402,6 +1410,9 @@ def show_confirm_clear(n_clicks):
     State("province-colors-store", "data"),
     State("bold-labels", "value"),
     State("legend-text", "value"),
+    State("legend-class1-label", "value"),
+    State("legend-class2-label", "value"),
+    State("legend-class3-label", "value"),
 )
 def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_values, region_name,
                   show_names_only,
@@ -1409,7 +1420,8 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                   c1min, c1max, c1color,
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
-                  province_colors, bold_labels, legend_text):
+                province_colors, bold_labels, legend_text,
+                  class1_label, class2_label, class3_label):
     upload_msg = dash.no_update
     toast_data = dash.no_update
     label_overlay_data = []
@@ -1779,6 +1791,49 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                 "offset_px": 0,
                 "voffset_px": text_size + 3
             })
+
+        # ===== LÉGENDE DES CLASSES DE COULEURS (mode "Par classe") =====
+    # Rendue en coordonnées "paper" (0-1, relatives au canevas entier), pas en
+    # coordonnées géographiques — elle reste donc toujours au même endroit à
+    # l'écran (coin supérieur gauche), peu importe le zoom ou la région
+    # affichée, sans jamais chevaucher les étiquettes de régions (ancrées, elles,
+    # géographiquement).
+    if color_mode == "class":
+        class_legend_items = [
+            (class1_label, c1color),
+            (class2_label, c2color),
+            (class3_label, c3color),
+        ]
+        class_legend_items = [(lbl, col) for lbl, col in class_legend_items if lbl and lbl.strip() and col]
+
+        if class_legend_items:
+            swatch_w = 0.018
+            swatch_h = (text_size + 6) / 950
+            row_gap = 0.008
+            x0 = 0.015
+            y_top = 0.97
+
+            for idx, (lbl, col) in enumerate(class_legend_items):
+                y1 = y_top - idx * (swatch_h + row_gap)
+                y0 = y1 - swatch_h
+                fig.add_shape(
+                    type="rect",
+                    xref="paper", yref="paper",
+                    x0=x0, x1=x0 + swatch_w,
+                    y0=y0, y1=y1,
+                    fillcolor=col,
+                    line=dict(width=0),
+                )
+                fig.add_annotation(
+                    x=x0 + swatch_w + 0.008,
+                    y=(y0 + y1) / 2,
+                    xref="paper", yref="paper",
+                    xanchor="left", yanchor="middle",
+                    text=lbl.strip(),
+                    showarrow=False,
+                    font=dict(size=text_size, color="black"),
+                    align="left",
+                )
 
     fig.update_layout(
         mapbox=dict(
