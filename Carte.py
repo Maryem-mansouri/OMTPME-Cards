@@ -344,17 +344,21 @@ server.secret_key = "omtpme_secret_key_2025_changez_moi"
 
 # ================= UTILS =================
 def format_number_adaptive(value):
-    """Arrondit une valeur à 1 décimale. Si le résultat arrondi vaut 0 alors que
-    la valeur réelle est non nulle, augmente la précision jusqu'à faire
-    apparaître le premier chiffre significatif après la virgule
-    (ex: 0.03 → '0,03' au lieu de '0')."""
+    """Arrondit une valeur à 1 décimale. Mais si la valeur réelle est déjà
+    inférieure à 0,1 (donc son premier chiffre significatif n'est pas dans la
+    décimale), on augmente la précision jusqu'à faire apparaître ce chiffre
+    (ex: 0.06 → '0,06' au lieu de '0,1', 0.03 → '0,03' au lieu de '0')."""
     if value == 0:
         return "0"
 
-    decimals = 1
-    rounded = round(value, decimals)
-    while rounded == 0 and decimals < 10:
-        decimals += 1
+    if abs(value) < 0.1:
+        decimals = 2
+        rounded = round(value, decimals)
+        while rounded == 0 and decimals < 10:
+            decimals += 1
+            rounded = round(value, decimals)
+    else:
+        decimals = 1
         rounded = round(value, decimals)
 
     if rounded == int(rounded):
