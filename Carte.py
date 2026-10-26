@@ -12,6 +12,7 @@ from flask import session
 from auth import is_email_allowed, register_user, verify_user, reset_password
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
+from translations import TRANSLATIONS, translate_name
 
 
 # ================= SVG FLECHES EN BASE64 =================  ← ICI
@@ -826,6 +827,19 @@ main_layout = html.Div([
                 options=[{"label": r, "value": r} for r in NATIONAL_REGIONS],
                 placeholder="Sélectionner une région",
             ),
+            html.Label("Langue des noms", style={"fontSize": "12px", "marginTop": "10px"}),
+            dcc.RadioItems(
+                id="map-language",
+                options=[
+                    {"label": " Français", "value": "fr"},
+                    {"label": " English", "value": "en"},
+                    {"label": " العربية", "value": "ar"},
+                ],
+                value="fr",
+                inline=True,
+                style={"fontSize": "13px"},
+                labelStyle={"marginRight": "12px"},
+            ),
 
             html.Div(
                 dcc.Checklist(
@@ -1140,13 +1154,17 @@ app.layout = html.Div([
 @app.callback(
     Output("filter-region", "options"),
     Output("filter-region", "value"),
-    Input("analysis-mode", "value")
+    Input("analysis-mode", "value"),
+    Input("map-language", "value"),
+    State("filter-region", "value"),
 )
-def update_region_options(mode):
-    if mode == "national":
-        opts = [{"label": r, "value": r} for r in NATIONAL_REGIONS]
-    else:
-        opts = [{"label": r, "value": r} for r in REGIONAL_REGIONS]
+def update_region_options(mode, lang, current_region):
+    lang = lang or "fr"
+    names = NATIONAL_REGIONS if mode == "national" else REGIONAL_REGIONS
+    opts = [{"label": translate_name(r, lang), "value": r} for r in names]
+    triggered = dash.callback_context.triggered[0]["prop_id"] if dash.callback_context.triggered else ""
+    if "map-language" in triggered and current_region in names:
+        return opts, current_region
     return opts, None
 
 @app.callback(
@@ -1179,22 +1197,24 @@ def toggle_color_config(mode):
 
 @app.callback(
     Output("color-province-select", "options"),
-    Input("filter-region", "value")
+    Input("filter-region", "value"),
+    Input("map-language", "value"),
 )
-def update_color_province_options(region_name):
+def update_color_province_options(region_name, lang):
+    lang = lang or "fr"
     if not region_name:
         return []
     if region_name == "Maroc":
-        return [{"label": r, "value": r} for r in REGIONS_LEVEL1]
+        return [{"label": translate_name(r, lang), "value": r} for r in REGIONS_LEVEL1]
     if region_name == MAROC_SUD_COMBINE:
-        return [{"label": r, "value": r} for r in REGIONS_LEVEL1_COMBINE]
+        return [{"label": translate_name(r, lang), "value": r} for r in REGIONS_LEVEL1_COMBINE]
     if region_name in REGIONS_GROUPES:
         provinces = [f for f in geo_provinces["features"]
                      if f["properties"]["shape1"] in REGIONS_GROUPES[region_name]]
     else:
         provinces = [f for f in geo_provinces["features"]
                      if f["properties"]["shape1"] == region_name]
-    return [{"label": f["properties"]["shape2"], "value": f["properties"]["shape2"]}
+    return [{"label": translate_name(f["properties"]["shape2"], lang), "value": f["properties"]["shape2"]}
             for f in provinces]
 
 
@@ -1266,21 +1286,22 @@ def save_province_color(n_add, n_clear, province, color, current_colors, region_
 
 @app.callback(
     Output("dropdown-province", "options"),
-    Input("filter-region", "value")
+    Input("filter-region", "value"),
+    Input("map-language", "value"),
 )
-
-def update_provinces(region_name):
+def update_provinces(region_name, lang):
+    lang = lang or "fr"
 
     if not region_name:
         return []
     
     # ← CAS MAROC : le 2ème dropdown affiche les régions
     if region_name == "Maroc":
-        return [{"label": r, "value": r} for r in REGIONS_LEVEL1]
+        return [{"label": translate_name(r, lang), "value": r} for r in REGIONS_LEVEL1]
 
     # ← CAS MAROC AVEC SUD FUSIONNÉ : le 2ème dropdown affiche les régions, Sud groupé
     if region_name == MAROC_SUD_COMBINE:
-        return [{"label": r, "value": r} for r in REGIONS_LEVEL1_COMBINE]
+        return [{"label": translate_name(r, lang), "value": r} for r in REGIONS_LEVEL1_COMBINE]
 
     if region_name in REGIONS_GROUPES:
         provinces = [
@@ -1293,7 +1314,7 @@ def update_provinces(region_name):
             if f["properties"]["shape1"] == region_name
         ]
 
-    return [{"label": f["properties"]["shape2"], "value": f["properties"]["shape2"]}
+    return [{"label": translate_name(f["properties"]["shape2"], lang), "value": f["properties"]["shape2"]}
             for f in provinces]
 
 @app.callback(
@@ -1413,6 +1434,7 @@ def show_confirm_clear(n_clicks):
     State("legend-class1-label", "value"),
     State("legend-class2-label", "value"),
     State("legend-class3-label", "value"),
+    Input("map-language", "value"),
 )
 def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_values, region_name,
                   show_names_only,
@@ -1421,7 +1443,8 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                   c2min, c2max, c2color,
                   c3min, c3max, c3color,
                 province_colors, bold_labels, legend_text,
-                  class1_label, class2_label, class3_label):
+                class1_label, class2_label, class3_label, lang):
+    lang = lang or "fr"
     upload_msg = dash.no_update
     toast_data = dash.no_update
     label_overlay_data = []
@@ -1536,7 +1559,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         return fig, stored_values, dash.no_update, dash.no_update, []
 
     # ===== Ajout manuel =====
-    if selected_province and (val is not None or evo is not None):
+    if "map-language" not in triggered and selected_province and (val is not None or evo is not None):
         existing = stored_values[region_name].get(selected_province, {})
         stored_values[region_name][selected_province] = {
             "part": val if val is not None else existing.get("part"),
@@ -1645,7 +1668,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         side = -1 if province_cfg.get("side") == "left" else \
                1 if province_cfg.get("side") == "right" else auto_side
 
-        gap = 0.17
+        gap = 0.0
 
         # Ligne légèrement raccourcie (facteur global, s'applique à toutes les régions)
         LINE_LENGTH_FACTOR = 0.8
@@ -1686,7 +1709,8 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         # (voffset_px), pas en degrés lat/lon : l'alignement reste donc identique
         # quel que soit le niveau de zoom de la région affichée.
         h_anchor = "left" if side == 1 else "right"
-        h_offset_px = (diamond_size / 2 + 6) if side == 1 else -(diamond_size / 2 + 6)
+        LABEL_GAP_PX = 6  # écart entre le bout de la ligne et le texte (pixels)
+        h_offset_px = LABEL_GAP_PX if side == 1 else -LABEL_GAP_PX
 
         row_gap = 3  # espace vertical entre les lignes, en pixels
         row_height_name = text_size + row_gap
@@ -1696,7 +1720,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         label_overlay_data.append({
             "lon": label_lon,
             "lat": label_lat,
-            "text": name,
+            "text": translate_name(name, lang),
             "fontsize": text_size,
             "color": "black",
             "bold": bool(bold_labels and "bold" in bold_labels),
