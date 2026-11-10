@@ -157,6 +157,8 @@ MAP_LABEL_CONFIG = {
     },
      "Casablanca-Settat": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3, 
         "provinces": {
             "Casablanca": {"length": 0.5, "side": "left"},
             "Mohammedia": {"length": 0.9, "side": "right","anchor_offset": {"lon": 0.0, "lat": 0.0}},
@@ -172,6 +174,8 @@ MAP_LABEL_CONFIG = {
 
     "Rabat-Salé-Kénitra": {
     "default_length": 0.50,
+    "legend_voffset_px": 200,      # plus petit = plus près de la carte
+    "legend_lon_offset": 0.3,   # + vers la droite, - vers la gauche (en degrés)
     "provinces": {
         "Rabat": {
             "length": 0.50, "side": "left",
@@ -190,6 +194,8 @@ MAP_LABEL_CONFIG = {
 },
     "Béni Mellal-Khénifra": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
         "provinces": {
             "Khouribga": {"length": 0.65, "side": "left","anchor_offset": {"lon": -0.2, "lat": 0.0}},
             "Fquih Ben Saleh": {"length": 0.65, "side": "left","anchor_offset": {"lon": -0.1, "lat": 0.0}},
@@ -201,6 +207,9 @@ MAP_LABEL_CONFIG = {
 
     "Fès-Meknès": {
         "default_length": 0.45,
+        "legend_voffset_px": 300,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "provinces": {
             "Taza": {"length": 0.5, "side": "right","anchor_offset": {"lon": 0.2, "lat": 0.0}},
             "Sefrou": {"length": 1.2, "side": "right","anchor_offset": {"lon": 0.4, "lat": 0.0}},
@@ -215,6 +224,9 @@ MAP_LABEL_CONFIG = {
     },
       "L'Oriental": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 5.4,
         "text_size": 18,
         "evo_size": 17,
@@ -231,6 +243,9 @@ MAP_LABEL_CONFIG = {
     },
     "Marrakech-Safi": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "text_size": 18,
         "evo_size": 17,
         
@@ -248,6 +263,9 @@ MAP_LABEL_CONFIG = {
     },
     "Drâa-Tafilalet": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 5,
         "text_size": 20,
         "evo_size": 20,
@@ -263,6 +281,9 @@ MAP_LABEL_CONFIG = {
 
     "Souss-Massa": {
         "default_length": 0.45,
+        "legend_voffset_px": 300,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 4.5,
         "text_size": 17,
         "evo_size": 17,
@@ -278,6 +299,9 @@ MAP_LABEL_CONFIG = {
     },
     "Laâyoune-Sakia El Hamra": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 4.5,
         "text_size": 19,
         "evo_size": 19,
@@ -290,6 +314,9 @@ MAP_LABEL_CONFIG = {
     },
     "Dakhla-Oued Ed-Dahab": {
         "default_length": 0.45,
+        "legend_voffset_px": 200,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 5.5,
         "text_size": 20,
         "evo_size": 20,
@@ -301,6 +328,9 @@ MAP_LABEL_CONFIG = {
     },
     "Guelmim-Oued Noun": {
         "default_length": 0.45,
+        "legend_voffset_px": 100,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 7,
         "provinces": {
             "Guelmim": {"length": 0.7, "side": "left","anchor_offset": {"lon": -0.05, "lat": 0.0}},
@@ -311,6 +341,9 @@ MAP_LABEL_CONFIG = {
     },
     "Régions du Sud": {
         "default_length": 0.45,
+        "legend_voffset_px": 100,      # plus petit = plus près de la carte
+        "legend_lon_offset": 0.3,
+
         "zoom": 2,
         "text_size": 20,
         "evo_size": 20,
@@ -1637,6 +1670,9 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
         lat_offset_text = 0.04 * (7.5 / region_zoom)
         lat_offset_evo = 0.05 * (7.5 / region_zoom)
 
+    has_up = False    # au moins une évolution >= 0
+    has_down = False  # au moins une évolution < 0
+
     for feature in features:
         name = feature["properties"][name_key]
 
@@ -1759,6 +1795,10 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             # décalage possible entre lui et le texte selon le zoom).
             arrow_direction = "up" if evo_float >= 0 else "down"
             arrow_b64 = make_arrow_b64(color, arrow_direction)
+            if evo_float >= 0:
+                has_up = True
+            else:
+                has_down = True
 
             label_overlay_data.append({
                 "lon": label_lon,
@@ -1781,14 +1821,32 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
     # (vert ▲ / rouge ▼, séparées) que celles utilisées pour l'évolution.
     # Si le texte dépasse 8 mots, il est réparti sur 2 lignes.
     if legend_text and legend_text.strip():
-        legend_lon = region_mid_lon + (max(lon_values) - min(lon_values)) * 0.08
-        legend_lat = min(lat_values) - 1.3
+        _cfg = MAP_LABEL_CONFIG.get(region_name, {})
+        # Position horizontale : décalage (en degrés) par rapport au centre de la région
+        legend_lon = region_mid_lon + _cfg.get(
+            "legend_lon_offset", (max(lon_values) - min(lon_values)) * 0.08
+        )
+        # Position verticale : ancrée sur la province la plus au sud,
+        # puis décalée vers le bas en PIXELS (identique à tous les zooms)
+        legend_lat = min(lat_values)
+        legend_voffset = _cfg.get("legend_voffset_px", 110)
 
         legend_words = legend_text.strip().split()
         legend_line1 = " ".join(legend_words[:5])
         legend_line2 = " ".join(legend_words[5:]) if len(legend_words) > 5 else None
 
-        label_overlay_data.append({
+               # Flèches de la légende selon les évolutions présentes :
+        #  - seulement des hausses  -> ▲ seule
+        #  - seulement des baisses  -> ▼ seule
+        #  - les deux, ou aucune évolution saisie -> ▲ et ▼ (par défaut)
+        if has_up and not has_down:
+            legend_icon2, legend_arrow = None, ARROW_UP_GREEN
+        elif has_down and not has_up:
+            legend_icon2, legend_arrow = None, ARROW_DOWN_RED
+        else:
+            legend_icon2, legend_arrow = ARROW_UP_GREEN, ARROW_DOWN_RED
+
+        legend_item = {
             "lon": legend_lon,
             "lat": legend_lat,
             "text": legend_line1,
@@ -1797,11 +1855,13 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
             "bold": False,
             "anchor": "left",
             "offset_px": 0,
-            "voffset_px": 0,
+            "voffset_px": legend_voffset,
             "gap_px": 0,
-            "icon2": ARROW_UP_GREEN,
-            "arrow": ARROW_DOWN_RED
-        })
+            "arrow": legend_arrow,
+        }
+        if legend_icon2:
+            legend_item["icon2"] = legend_icon2
+        label_overlay_data.append(legend_item)
 
         if legend_line2:
             label_overlay_data.append({
@@ -1813,7 +1873,7 @@ def update_figure(n_clicks, n_clear, excel_trigger, excel_contents, stored_value
                 "bold": False,
                 "anchor": "left",
                 "offset_px": 0,
-                "voffset_px": text_size + 3
+                "voffset_px": legend_voffset + text_size + 3
             })
 
         # ===== LÉGENDE DES CLASSES DE COULEURS (mode "Par classe") =====
